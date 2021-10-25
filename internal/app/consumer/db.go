@@ -1,7 +1,7 @@
 package consumer
 
 import (
-	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -27,7 +27,7 @@ type consumer struct {
 	wg   *sync.WaitGroup
 }
 
-type Config struct {
+type Config struct { // зачем?
 	n         uint64
 	events    chan<- model.OfficeEvent
 	repo      repo.EventRepo
@@ -66,10 +66,9 @@ func (c *consumer) Start() {
 			for {
 				select {
 				case <-ticker.C:
-					fmt.Println("tick")
 					events, err := c.repo.Lock(c.batchSize)
-					fmt.Println(events, err)
 					if err != nil {
+						log.Printf("consumer lock error:%s \n", err)
 						continue
 					}
 					for _, event := range events {

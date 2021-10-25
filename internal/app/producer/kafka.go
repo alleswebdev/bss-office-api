@@ -1,6 +1,8 @@
 package producer
 
 import (
+	"github.com/ozonmp/bss-office-api/internal/app/repo"
+	"log"
 	"sync"
 	"time"
 
@@ -17,7 +19,9 @@ type Producer interface {
 
 type producer struct {
 	n       uint64
-	timeout time.Duration
+	timeout time.Duration // неиспользуется
+
+	repo repo.EventRepo
 
 	sender sender.EventSender
 	events <-chan model.OfficeEvent
@@ -28,10 +32,10 @@ type producer struct {
 	done chan bool
 }
 
-// todo for students: add repo
 func NewKafkaProducer(
 	n uint64,
 	sender sender.EventSender,
+	repo repo.EventRepo,
 	events <-chan model.OfficeEvent,
 	workerPool *workerpool.WorkerPool,
 ) Producer {
@@ -43,6 +47,7 @@ func NewKafkaProducer(
 		n:          n,
 		sender:     sender,
 		events:     events,
+		repo:       repo,
 		workerPool: workerPool,
 		wg:         wg,
 		done:       done,
@@ -57,17 +62,26 @@ func (p *producer) Start() {
 			for {
 				select {
 				case event := <-p.events:
-					if err := p.sender.Send(&event); err != nil {
+					err := p.sender.Send(&event)
+					if err != nil {
 						p.workerPool.Submit(func() {
-							event.Status = model.Processed
-							event.Type = model.Created
-							//unlock
+							err = p.repo.Unlock([]uint64{event.ID})
+							if err != nil {
+								log.Printf("produser unlock error:%s \n", err)
+								// и чё делать?
+							}
 						})
-					} else {
-						p.workerPool.Submit(func() {
-							event.Status = model.Deferred
-						})
+
+						break
 					}
+
+					p.workerPool.Submit(func() {
+						err = p.repo.Remove([]uint64{event.ID})
+						if err != nil {
+							log.Printf("produser remove error:%s \n", err)
+							// и чё делать?
+						}
+					})
 				case <-p.done:
 					return
 				}
