@@ -22,7 +22,7 @@
 
 **Рецепт**
 
-[bss-office-api](https://github.com/ozonmp/bss-office-api)
+[omp-demo-api](https://github.com/ozonmp/omp-demo-api)
 
 P.S. Обратите внимание используется зеркальная (внешняя) точка зрения на вопрос, кто является потребителем, а кто является производителем.
 Поэтому паттерн назвали **consumer-producer** и классы переименовали.
