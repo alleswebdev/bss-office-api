@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"fmt"
 	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"log"
 	"sync"
@@ -40,7 +41,7 @@ func NewKafkaProducer(
 	workerPool *workerpool.WorkerPool,
 ) Producer {
 
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	done := make(chan interface{})
 
 	return &producer{
@@ -49,7 +50,7 @@ func NewKafkaProducer(
 		events:     events,
 		repo:       repo,
 		workerPool: workerPool,
-		wg:         wg,
+		wg:         &wg,
 		done:       done,
 	}
 }
@@ -61,7 +62,12 @@ func (p *producer) Start() {
 			defer p.wg.Done()
 			for {
 				select {
-				case event := <-p.events:
+				case event, ok := <-p.events:
+					if !ok {
+						fmt.Println("producer: consumer channel close")
+						return
+					}
+
 					err := p.sender.Send(&event)
 					if err != nil {
 						p.processUpdate([]uint64{event.ID})

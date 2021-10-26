@@ -34,7 +34,7 @@ func NewDbConsumer(
 	repo repo.EventRepo,
 	events chan<- model.OfficeEvent) Consumer {
 
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	done := make(chan interface{})
 
 	return &consumer{
@@ -43,7 +43,7 @@ func NewDbConsumer(
 		timeout:   consumeTimeout,
 		repo:      repo,
 		events:    events,
-		wg:        wg,
+		wg:        &wg,
 		done:      done,
 	}
 }
