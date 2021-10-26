@@ -57,7 +57,7 @@ func TestProducer_Update(t *testing.T) {
 	fixture.Repo.EXPECT().Unlock(gomock.Any()).Return(nil).Times(0)
 
 	fixture.Repo.EXPECT().Remove(gomock.Eq([]uint64{testModel.ID})).Return(nil).Times(1).After(
-		fixture.Sender.EXPECT().Send(ctx, gomock.Eq(&testModel)).Return(nil).Times(1))
+		fixture.Sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&testModel)).Return(nil).Times(1))
 
 	workerPool := workerpool.New(testWorkerCount)
 	defer workerPool.StopWait()
@@ -94,7 +94,7 @@ func TestProducer_With_Error(t *testing.T) {
 	fixture.Repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
 
 	fixture.Repo.EXPECT().Unlock(gomock.Eq([]uint64{testModel.ID})).Return(nil).Times(1).After(
-		fixture.Sender.EXPECT().Send(ctx, gomock.Eq(&testModel)).Return(errors.New("test error")).Times(1))
+		fixture.Sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&testModel)).Return(errors.New("test error")).Times(1))
 
 	workerPool := workerpool.New(5)
 	defer workerPool.StopWait()
