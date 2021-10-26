@@ -1,6 +1,7 @@
 package retranslator
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -27,7 +28,9 @@ func TestStart(t *testing.T) {
 		Sender:         sender,
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	retranslator := NewRetranslator(cfg)
-	retranslator.Start()
+	retranslator.Start(ctx)
+	cancel()
 	retranslator.Close()
 }
