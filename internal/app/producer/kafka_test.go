@@ -5,8 +5,10 @@ import (
 	"errors"
 	"github.com/gammazero/workerpool"
 	"github.com/golang/mock/gomock"
+	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
 )
@@ -15,104 +17,90 @@ const testProducerCount = 2
 const testWorkerCount = 2
 const testEventBufferSize = 512
 
-var testModel = model.OfficeEvent{
-	ID:     1,
-	Type:   model.Created,
-	Status: model.Deferred,
-	Entity: &model.Office{},
+type ProducerTestSuite struct {
+	suite.Suite
+	producer   Producer
+	repo       *mocks.MockEventRepo
+	ctrl       *gomock.Controller
+	sender     *mocks.MockEventSender
+	model      model.OfficeEvent
+	events     chan model.OfficeEvent
+	workerPool *workerpool.WorkerPool
 }
 
-func TestProducer_Start(t *testing.T) {
-	t.Parallel()
-
-	events := make(chan model.OfficeEvent, testEventBufferSize)
-	defer close(events)
-
-	fixture := LoadFixture(t)
-	workerPool := workerpool.New(testWorkerCount)
-
-	producer := NewKafkaProducer(
+func (s *ProducerTestSuite) SetupTest() {
+	s.ctrl = gomock.NewController(s.T())
+	s.repo = mocks.NewMockEventRepo(s.ctrl)
+	s.sender = mocks.NewMockEventSender(s.ctrl)
+	s.events = make(chan model.OfficeEvent, testEventBufferSize)
+	s.workerPool = workerpool.New(testWorkerCount)
+	s.producer = NewKafkaProducer(
 		testProducerCount,
-		fixture.Sender,
-		fixture.Repo,
-		events,
-		workerPool)
+		s.sender,
+		s.repo,
+		s.events,
+		s.workerPool)
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	producer.Start(ctx)
-	cancel()
-	producer.Close()
+	s.model = model.OfficeEvent{
+		ID:     1,
+		Type:   model.Created,
+		Status: model.Deferred,
+		Entity: &model.Office{},
+	}
 }
 
-func TestProducer_Update(t *testing.T) {
-	t.Parallel()
-	events := make(chan model.OfficeEvent, testEventBufferSize)
-	defer close(events)
+func (s *ProducerTestSuite) TearDownTest() {
+	close(s.events)
+	s.workerPool.Stop()
+}
 
-	fixture := LoadFixture(t)
+func TestProducerTestSuite(t *testing.T) {
+	suite.Run(t, new(ProducerTestSuite))
+}
 
+func (s *ProducerTestSuite) TestProducer_Start() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-	fixture.Repo.EXPECT().Unlock(gomock.Any()).Return(nil).Times(0)
-
-	fixture.Repo.EXPECT().Remove(gomock.Eq([]uint64{testModel.ID})).Return(nil).Times(1).After(
-		fixture.Sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&testModel)).Return(nil).Times(1))
-
-	workerPool := workerpool.New(testWorkerCount)
-	defer workerPool.StopWait()
-
-	producer := NewKafkaProducer(
-		testProducerCount,
-		fixture.Sender,
-		fixture.Repo,
-		events,
-		workerPool)
-
-	events <- testModel
-
-	assert.Len(t, events, 1)
-
-	producer.Start(ctx)
-
-	time.Sleep(time.Millisecond * 5)
-	assert.Len(t, events, 0)
-
+	s.producer.Start(ctx)
+	s.producer.Close()
 	cancel()
-	producer.Close()
 }
 
-func TestProducer_With_Error(t *testing.T) {
-	t.Parallel()
-	events := make(chan model.OfficeEvent, testEventBufferSize)
-	defer close(events)
+func (s *ProducerTestSuite) TestProducer_Update() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-	fixture := LoadFixture(t)
+	s.repo.EXPECT().Unlock(gomock.Any()).Return(nil).Times(0)
+	s.repo.EXPECT().Remove(gomock.Eq([]uint64{s.model.ID})).Return(nil).Times(1).After(
+		s.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&s.model)).Return(nil).Times(1))
 
-	ctx, cancel := context.WithCancel(context.Background())
+	s.events <- s.model
 
-	fixture.Repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
+	assert.Len(s.T(), s.events, 1)
 
-	fixture.Repo.EXPECT().Unlock(gomock.Eq([]uint64{testModel.ID})).Return(nil).Times(1).After(
-		fixture.Sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&testModel)).Return(errors.New("test error")).Times(1))
+	s.producer.Start(ctx)
+	defer s.producer.Close()
 
-	workerPool := workerpool.New(5)
-	defer workerPool.StopWait()
-
-	producer := NewKafkaProducer(
-		testProducerCount,
-		fixture.Sender,
-		fixture.Repo,
-		events,
-		workerPool)
-
-	events <- testModel
-
-	producer.Start(ctx)
-
-	time.Sleep(time.Millisecond)
-	assert.Len(t, events, 0)
+	time.Sleep(time.Millisecond * 5)
+	assert.Len(s.T(), s.events, 0)
 
 	cancel()
-	producer.Close()
+}
+
+func (s *ProducerTestSuite) TestProducer_With_Error() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	s.repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
+
+	s.repo.EXPECT().Unlock(gomock.Eq([]uint64{s.model.ID})).Return(nil).Times(1).After(
+		s.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&s.model)).Return(errors.New("test error")).Times(1))
+
+	s.events <- s.model
+
+	s.producer.Start(ctx)
+	defer s.producer.Close()
+
+	time.Sleep(time.Millisecond)
+	assert.Len(s.T(), s.events, 0)
+
+	cancel()
 }
