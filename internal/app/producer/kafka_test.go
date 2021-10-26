@@ -52,15 +52,8 @@ func TestProducer_Update(t *testing.T) {
 
 	fixture := LoadFixture(t)
 
-<<<<<<< HEAD
-	repo.EXPECT().Unlock(gomock.Any()).Return(nil).MaxTimes(0)
-	repo.EXPECT().Remove(gomock.Any()).Return(nil).MinTimes(1)
-	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(nil).MinTimes(1)
-=======
-	fixture.Repo.EXPECT().Unlock(gomock.Any()).Return(nil).Times(0)
 	fixture.Repo.EXPECT().Remove(gomock.Eq([]uint64{testModel.ID})).Return(nil).Times(1).After(
-		fixture.Sender.EXPECT().Send(gomock.Eq(&testModel)).Return(nil).Times(1))
->>>>>>> test: expanded test cases
+		fixture.Sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&testModel)).Return(nil).Times(1))
 
 	workerPool := workerpool.New(testWorkerCount)
 	defer workerPool.StopWait()
@@ -95,14 +88,8 @@ func TestProducer_With_Error(t *testing.T) {
 
 	fixture.Repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
 
-<<<<<<< HEAD
-	repo.EXPECT().Unlock(gomock.Any()).Return(nil).MinTimes(1)
-	repo.EXPECT().Remove(gomock.Any()).Return(nil).MaxTimes(0)
-	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(errors.New("error sending")).MinTimes(1)
-=======
 	fixture.Repo.EXPECT().Unlock(gomock.Eq([]uint64{testModel.ID})).Return(nil).Times(1).After(
-		fixture.Sender.EXPECT().Send(gomock.Eq(&testModel)).Return(errors.New("test error")).Times(1))
->>>>>>> test: expanded test cases
+		fixture.Sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&testModel)).Return(errors.New("test error")).Times(1))
 
 	workerPool := workerpool.New(5)
 	defer workerPool.StopWait()
