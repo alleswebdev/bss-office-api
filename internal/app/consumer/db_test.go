@@ -44,12 +44,15 @@ func Test_consumer_Start(t *testing.T) {
 	time.Sleep(time.Millisecond * 2)
 
 	timer := time.NewTimer(time.Second)
+
 	select {
 	case event, ok := <-events:
 		if !ok {
 			t.Fatal("cannot get event from the channel")
 		}
 		assert.Equal(t, event, testModel)
+		timer.Stop()
+		return
 	case <-timer.C:
 		t.Fatal("timeout waiting event")
 	}
