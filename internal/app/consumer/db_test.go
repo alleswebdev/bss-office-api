@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
@@ -40,25 +41,21 @@ func Test_consumer_Start(t *testing.T) {
 		cfg.repo,
 		cfg.events)
 
-	consumer.Start()
+	ctx, cancel := context.WithCancel(context.Background())
+	consumer.Start(ctx)
 	defer consumer.Close()
+	defer cancel()
 
 	time.Sleep(time.Millisecond * 2)
 
 	timer := time.NewTimer(time.Second)
-	for {
-		select {
-		case event, ok := <-events:
-			if !ok {
-				t.Fatal("cannot get event from the channel")
-			}
-			assert.Equal(t, event, testModel)
-			timer.Stop()
-			return
-
-		case <-timer.C:
-			t.Fatal("timeout waiting event")
+	select {
+	case event, ok := <-events:
+		if !ok {
+			t.Fatal("cannot get event from the channel")
 		}
+		assert.Equal(t, event, testModel)
+	case <-timer.C:
+		t.Fatal("timeout waiting event")
 	}
-
 }

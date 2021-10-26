@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"errors"
 	"github.com/gammazero/workerpool"
 	"github.com/golang/mock/gomock"
@@ -27,8 +28,11 @@ func TestProducer_Start(t *testing.T) {
 		events,
 		workerPool)
 
-	producer.Start()
-	defer producer.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	producer.Start(ctx)
+	cancel()
+	producer.Close()
 }
 
 func TestProducer_With_Update(t *testing.T) {
@@ -41,7 +45,7 @@ func TestProducer_With_Update(t *testing.T) {
 
 	repo.EXPECT().Unlock(gomock.Any()).Return(nil).MaxTimes(0)
 	repo.EXPECT().Remove(gomock.Any()).Return(nil).MinTimes(1)
-	sender.EXPECT().Send(gomock.Any()).Return(nil).MinTimes(1)
+	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(nil).MinTimes(1)
 
 	workerPool := workerpool.New(5)
 	defer workerPool.StopWait()
@@ -60,11 +64,14 @@ func TestProducer_With_Update(t *testing.T) {
 		Entity: nil,
 	}
 
-	producer.Start()
-	defer producer.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	producer.Start(ctx)
 
 	time.Sleep(time.Millisecond)
 	assert.Len(t, events, 0)
+
+	cancel()
+	producer.Close()
 }
 
 func TestProducer_With_Error(t *testing.T) {
@@ -77,7 +84,7 @@ func TestProducer_With_Error(t *testing.T) {
 
 	repo.EXPECT().Unlock(gomock.Any()).Return(nil).MinTimes(1)
 	repo.EXPECT().Remove(gomock.Any()).Return(nil).MaxTimes(0)
-	sender.EXPECT().Send(gomock.Any()).Return(errors.New("error sending")).MinTimes(1)
+	sender.EXPECT().Send(gomock.Any(), gomock.Any()).Return(errors.New("error sending")).MinTimes(1)
 
 	workerPool := workerpool.New(5)
 	defer workerPool.StopWait()
@@ -96,8 +103,10 @@ func TestProducer_With_Error(t *testing.T) {
 		Entity: nil,
 	}
 
-	producer.Start()
+	ctx, cancel := context.WithCancel(context.Background())
+	producer.Start(ctx)
 	defer producer.Close()
+	defer cancel()
 
 	time.Sleep(time.Millisecond)
 	assert.Len(t, events, 0)

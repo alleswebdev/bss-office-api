@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"log"
 	"sync"
@@ -13,7 +14,7 @@ import (
 )
 
 type Producer interface {
-	Start()
+	Start(ctx context.Context)
 	Close()
 }
 
@@ -28,8 +29,7 @@ type producer struct {
 
 	workerPool *workerpool.WorkerPool
 
-	wg   *sync.WaitGroup
-	done chan bool
+	wg *sync.WaitGroup
 }
 
 func NewKafkaProducer(
@@ -41,7 +41,6 @@ func NewKafkaProducer(
 ) Producer {
 
 	var wg sync.WaitGroup
-	done := make(chan bool)
 
 	return &producer{
 		n:          n,
@@ -50,11 +49,10 @@ func NewKafkaProducer(
 		repo:       repo,
 		workerPool: workerPool,
 		wg:         &wg,
-		done:       done,
 	}
 }
 
-func (p *producer) Start() {
+func (p *producer) Start(ctx context.Context) {
 	for i := uint64(0); i < p.n; i++ {
 		p.wg.Add(1)
 		go func() {
@@ -62,14 +60,14 @@ func (p *producer) Start() {
 			for {
 				select {
 				case event := <-p.events:
-					err := p.sender.Send(&event)
+					err := p.sender.Send(ctx, &event)
 					if err != nil {
 						p.processUpdate([]uint64{event.ID})
 						continue
 					}
 
 					p.processClean([]uint64{event.ID})
-				case <-p.done:
+				case <-ctx.Done():
 					return
 				}
 			}
@@ -78,7 +76,6 @@ func (p *producer) Start() {
 }
 
 func (p *producer) Close() {
-	close(p.done)
 	p.wg.Wait()
 }
 
