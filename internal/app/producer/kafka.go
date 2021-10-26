@@ -19,7 +19,7 @@ type Producer interface {
 
 type producer struct {
 	n       uint64
-	timeout time.Duration // неиспользуется
+	timeout time.Duration
 
 	repo repo.EventRepo
 
@@ -64,24 +64,11 @@ func (p *producer) Start() {
 				case event := <-p.events:
 					err := p.sender.Send(&event)
 					if err != nil {
-						p.workerPool.Submit(func() {
-							err = p.repo.Unlock([]uint64{event.ID})
-							if err != nil {
-								log.Printf("produser unlock error:%s \n", err)
-								// и чё делать?
-							}
-						})
-
-						break
+						p.processUpdate([]uint64{event.ID})
+						continue
 					}
 
-					p.workerPool.Submit(func() {
-						err = p.repo.Remove([]uint64{event.ID})
-						if err != nil {
-							log.Printf("produser remove error:%s \n", err)
-							// и чё делать?
-						}
-					})
+					p.processClean([]uint64{event.ID})
 				case <-p.done:
 					return
 				}
@@ -93,4 +80,20 @@ func (p *producer) Start() {
 func (p *producer) Close() {
 	close(p.done)
 	p.wg.Wait()
+}
+
+func (p *producer) processUpdate(eventIDs []uint64) {
+	p.workerPool.Submit(func() {
+		err := p.repo.Unlock(eventIDs)
+		if err != nil {
+			log.Printf("produser unlock error:%s \n", err)
+		}
+	})
+}
+
+func (p *producer) processClean(eventIDs []uint64) {
+	err := p.repo.Remove(eventIDs)
+	if err != nil {
+		log.Printf("produser remove error:%s \n", err)
+	}
 }
