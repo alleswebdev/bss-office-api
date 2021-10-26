@@ -29,7 +29,7 @@ type producer struct {
 	workerPool *workerpool.WorkerPool
 
 	wg   *sync.WaitGroup
-	done chan bool
+	done chan interface{}
 }
 
 func NewKafkaProducer(
@@ -41,7 +41,7 @@ func NewKafkaProducer(
 ) Producer {
 
 	wg := &sync.WaitGroup{}
-	done := make(chan bool)
+	done := make(chan interface{})
 
 	return &producer{
 		n:          n,
