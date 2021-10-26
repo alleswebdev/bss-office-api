@@ -27,14 +27,6 @@ type consumer struct {
 	wg *sync.WaitGroup
 }
 
-type Config struct { // зачем?
-	n         uint64
-	events    chan<- model.OfficeEvent
-	repo      repo.EventRepo
-	batchSize uint64
-	timeout   time.Duration
-}
-
 func NewDbConsumer(
 	n uint64,
 	batchSize uint64,
