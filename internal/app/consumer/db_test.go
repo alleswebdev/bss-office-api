@@ -52,7 +52,6 @@ func Test_consumer_Start(t *testing.T) {
 		}
 		assert.Equal(t, event, testModel)
 		timer.Stop()
-		return
 	case <-timer.C:
 		t.Fatal("timeout waiting event")
 	}
