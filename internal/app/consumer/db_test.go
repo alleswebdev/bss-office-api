@@ -10,6 +10,7 @@ import (
 )
 
 func Test_consumer_Start(t *testing.T) {
+	t.Parallel()
 	events := make(chan model.OfficeEvent, 10)
 
 	ctrl := gomock.NewController(t)
@@ -22,7 +23,7 @@ func Test_consumer_Start(t *testing.T) {
 		Entity: &model.Office{},
 	}
 
-	repo.EXPECT().Lock(gomock.Any()).Return([]model.OfficeEvent{testModel}, nil).MinTimes(1).AnyTimes()
+	repo.EXPECT().Lock(gomock.Any()).Return([]model.OfficeEvent{testModel}, nil).MinTimes(1)
 
 	cfg := Config{
 		n:         2,
@@ -61,18 +62,3 @@ func Test_consumer_Start(t *testing.T) {
 	}
 
 }
-
-//repo.EXPECT().Lock(gomock.Any()).
-//DoAndReturn(func(batchSize uint64) ([]model.OfficeEvent, error) {
-//	var result []model.OfficeEvent
-//	for i := uint64(0); i < batchSize; i++ {
-//		result = append(result, model.OfficeEvent{
-//			ID:     i,
-//			Type:   model.Created,
-//			Status: model.Deferred,
-//			Entity: &model.Office{},
-//		})
-//	}
-//
-//	return result, nil
-//}).AnyTimes()
