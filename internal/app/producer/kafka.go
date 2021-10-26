@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"fmt"
 	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"log"
 	"sync"
@@ -61,6 +62,11 @@ func (p *producer) Start(ctx context.Context) {
 				select {
 				case event := <-p.events:
 					err := p.sender.Send(ctx, &event)
+					if !ok {
+						fmt.Println("producer: consumer channel close")
+						return
+					}
+
 					if err != nil {
 						p.processUpdate([]uint64{event.ID})
 						continue
