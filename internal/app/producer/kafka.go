@@ -40,7 +40,7 @@ func NewKafkaProducer(
 	workerPool *workerpool.WorkerPool,
 ) Producer {
 
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	done := make(chan bool)
 
 	return &producer{
@@ -49,7 +49,7 @@ func NewKafkaProducer(
 		events:     events,
 		repo:       repo,
 		workerPool: workerPool,
-		wg:         wg,
+		wg:         &wg,
 		done:       done,
 	}
 }
