@@ -16,7 +16,7 @@ type Consumer interface {
 }
 
 type consumer struct {
-	n      uint64
+	n      int
 	events chan<- model.OfficeEvent
 
 	repo repo.EventRepo
@@ -28,7 +28,7 @@ type consumer struct {
 }
 
 func NewDbConsumer(
-	n uint64,
+	n int,
 	batchSize uint64,
 	consumeTimeout time.Duration,
 	repo repo.EventRepo,
@@ -47,7 +47,7 @@ func NewDbConsumer(
 }
 
 func (c *consumer) Start(ctx context.Context) {
-	for i := uint64(0); i < c.n; i++ {
+	for i := 0; i < c.n; i++ {
 		c.wg.Add(1)
 
 		go func() {

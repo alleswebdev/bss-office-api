@@ -20,7 +20,7 @@ type Producer interface {
 }
 
 type producer struct {
-	n       uint64
+	n       int
 	timeout time.Duration
 
 	repo repo.EventRepo
@@ -34,7 +34,7 @@ type producer struct {
 }
 
 func NewKafkaProducer(
-	n uint64,
+	n int,
 	sender sender.EventSender,
 	repo repo.EventRepo,
 	events <-chan model.OfficeEvent,
@@ -54,7 +54,7 @@ func NewKafkaProducer(
 }
 
 func (p *producer) Start(ctx context.Context) {
-	for i := uint64(0); i < p.n; i++ {
+	for i := 0; i < p.n; i++ {
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()

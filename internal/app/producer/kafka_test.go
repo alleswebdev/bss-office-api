@@ -8,7 +8,6 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
 )
@@ -17,8 +16,7 @@ const testProducerCount = 2
 const testWorkerCount = 2
 const testEventBufferSize = 512
 
-type ProducerTestSuite struct {
-	suite.Suite
+type ProducerFixture struct {
 	producer   Producer
 	repo       *mocks.MockEventRepo
 	ctrl       *gomock.Controller
@@ -28,79 +26,80 @@ type ProducerTestSuite struct {
 	workerPool *workerpool.WorkerPool
 }
 
-func (s *ProducerTestSuite) SetupTest() {
-	s.ctrl = gomock.NewController(s.T())
-	s.repo = mocks.NewMockEventRepo(s.ctrl)
-	s.sender = mocks.NewMockEventSender(s.ctrl)
-	s.events = make(chan model.OfficeEvent, testEventBufferSize)
-	s.workerPool = workerpool.New(testWorkerCount)
-	s.producer = NewKafkaProducer(
-		testProducerCount,
-		s.sender,
-		s.repo,
-		s.events,
-		s.workerPool)
+func setUp(t *testing.T) ProducerFixture {
+	var fixture ProducerFixture
 
-	s.model = model.OfficeEvent{
+	fixture.ctrl = gomock.NewController(t)
+	fixture.repo = mocks.NewMockEventRepo(fixture.ctrl)
+	fixture.sender = mocks.NewMockEventSender(fixture.ctrl)
+	fixture.events = make(chan model.OfficeEvent, testEventBufferSize)
+	fixture.workerPool = workerpool.New(testWorkerCount)
+	fixture.producer = NewKafkaProducer(
+		testProducerCount,
+		fixture.sender,
+		fixture.repo,
+		fixture.events,
+		fixture.workerPool)
+
+	fixture.model = model.OfficeEvent{
 		ID:     1,
 		Type:   model.Created,
 		Status: model.Deferred,
 		Entity: &model.Office{},
 	}
+
+	return fixture
 }
 
-func (s *ProducerTestSuite) TearDownTest() {
-	close(s.events)
-	s.workerPool.Stop()
+func (f *ProducerFixture) tearDown() {
+	f.ctrl.Finish()
+	close(f.events)
+	f.workerPool.Stop()
 }
 
-func TestProducerTestSuite(t *testing.T) {
-	suite.Run(t, new(ProducerTestSuite))
-}
+func TestProducer_Update(t *testing.T) {
+	t.Parallel()
 
-func (s *ProducerTestSuite) TestProducer_Start() {
+	fixture := setUp(t)
+	defer fixture.tearDown()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-	s.producer.Start(ctx)
-	s.producer.Close()
-	cancel()
-}
+	fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1).After(
+		fixture.sender.EXPECT().Send(gomock.Eq(ctx),gomock.Eq(&fixture.model)).Return(nil).Times(1))
 
-func (s *ProducerTestSuite) TestProducer_Update() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	fixture.events <- fixture.model
 
-	s.repo.EXPECT().Unlock(gomock.Any()).Return(nil).Times(0)
-	s.repo.EXPECT().Remove(gomock.Eq([]uint64{s.model.ID})).Return(nil).Times(1).After(
-		s.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&s.model)).Return(nil).Times(1))
+	assert.Len(t, fixture.events, 1)
 
-	s.events <- s.model
-
-	assert.Len(s.T(), s.events, 1)
-
-	s.producer.Start(ctx)
-	defer s.producer.Close()
+	fixture.producer.Start(ctx)
+	defer fixture.producer.Close()
 
 	time.Sleep(time.Millisecond * 5)
-	assert.Len(s.T(), s.events, 0)
+	assert.Len(t, fixture.events, 0)
 
 	cancel()
 }
 
-func (s *ProducerTestSuite) TestProducer_With_Error() {
+func TestProducer_With_Error(t *testing.T) {
+	t.Parallel()
+
+	fixture := setUp(t)
+	defer fixture.tearDown()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	fixture.repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
 
-	s.repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
+	fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1).After(
+		fixture.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(1))
 
-	s.repo.EXPECT().Unlock(gomock.Eq([]uint64{s.model.ID})).Return(nil).Times(1).After(
-		s.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&s.model)).Return(errors.New("test error")).Times(1))
+	fixture.events <- fixture.model
 
-	s.events <- s.model
+	fixture.producer.Start(ctx)
+	defer fixture.producer.Close()
 
-	s.producer.Start(ctx)
-	defer s.producer.Close()
-
-	time.Sleep(time.Millisecond)
-	assert.Len(s.T(), s.events, 0)
+	time.Sleep(time.Millisecond) // убрать
+	assert.Len(t, fixture.events, 0)
 
 	cancel()
 }

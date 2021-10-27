@@ -15,22 +15,25 @@ func TestStart(t *testing.T) {
 	repo := mocks.NewMockEventRepo(ctrl)
 	sender := mocks.NewMockEventSender(ctrl)
 
-	repo.EXPECT().Lock(gomock.Any()).AnyTimes()
-
 	cfg := Config{
 		ChannelSize:    512,
 		ConsumerCount:  2,
 		ConsumeSize:    10,
-		ConsumeTimeout: 10 * time.Second,
+		ConsumeTimeout: 1 * time.Millisecond,
 		ProducerCount:  2,
 		WorkerCount:    2,
 		Repo:           repo,
 		Sender:         sender,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	repo.EXPECT().Lock(gomock.Eq(cfg.ConsumeSize)).Times(2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
 	retranslator := NewRetranslator(cfg)
 	retranslator.Start(ctx)
+
+	time.Sleep(time.Millisecond * 1) // убрать
+
 	cancel()
 	retranslator.Close()
 }
