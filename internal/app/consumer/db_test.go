@@ -95,18 +95,7 @@ func Test_consumer_Error(t *testing.T) {
 	fixture.consumer.Start(ctx)
 	defer fixture.consumer.Close()
 
-	time.Sleep(time.Millisecond) // заменить
-
-	timer := time.NewTimer(time.Second)
-
-	select {
-	default:
-		assert.Len(t, fixture.events, 0)
-
-	case <-timer.C:
-		t.Error("timeout waiting event")
-	}
-
+	time.Sleep(time.Millisecond)
 	assert.Len(t, fixture.events, 0)
 
 	cancel()
