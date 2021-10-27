@@ -7,7 +7,6 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
 )
@@ -16,8 +15,7 @@ const testBatchSize = uint64(10)
 const testConsumerCount = 2
 const testEventBufferSize = 512
 
-type ConsumerTestSuite struct {
-	suite.Suite
+type ConsumerFixture struct {
 	consumer Consumer
 	repo     *mocks.MockEventRepo
 	ctrl     *gomock.Controller
@@ -25,65 +23,82 @@ type ConsumerTestSuite struct {
 	events   chan model.OfficeEvent
 }
 
-func (suite *ConsumerTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-	suite.repo = mocks.NewMockEventRepo(suite.ctrl)
-	suite.events = make(chan model.OfficeEvent, testEventBufferSize)
+func setUp(t *testing.T) ConsumerFixture {
+	var fixture ConsumerFixture
+	fixture.ctrl = gomock.NewController(t)
+	fixture.repo = mocks.NewMockEventRepo(fixture.ctrl)
+	fixture.events = make(chan model.OfficeEvent, testEventBufferSize)
 
-	suite.consumer = NewDbConsumer(
+	fixture.consumer = NewDbConsumer(
 		testConsumerCount,
 		testBatchSize,
 		time.Millisecond,
-		suite.repo,
-		suite.events,
+		fixture.repo,
+		fixture.events,
 	)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	consumer.Start(ctx)
-	defer consumer.Close()
-	defer cancel()
-
-	suite.model = model.OfficeEvent{
+	fixture.model = model.OfficeEvent{
 		ID:     1,
 		Type:   model.Created,
 		Status: model.Deferred,
 		Entity: &model.Office{},
 	}
+
+	return fixture
 }
 
-func TestConsumerTestSuite(t *testing.T) {
-	suite.Run(t, new(ConsumerTestSuite))
+func (f *ConsumerFixture) tearDown() {
+	f.ctrl.Finish()
 }
 
-func (suite *ConsumerTestSuite) Test_consumer_Start() {
-	suite.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{suite.model}, nil).MinTimes(1)
+func Test_consumer_Start(t *testing.T) {
+	t.Parallel()
 
-	suite.consumer.Start()
-	defer suite.consumer.Close()
+	fixture := setUp(t)
+	defer fixture.tearDown()
 
-	time.Sleep(time.Millisecond * 2)
+	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{fixture.model}, nil).Times(2)
+
+	fixture.consumer.Start()
+	defer fixture.consumer.Close()
 
 	timer := time.NewTimer(time.Second)
 
 	select {
-	case event, ok := <-suite.events:
+	case event, ok := <-fixture.events:
 		if !ok {
-			suite.Fail("cannot get event from the channel")
+			t.Error("cannot get event from the channel")
 		}
-		assert.Equal(suite.T(), event, suite.model)
+		assert.Equal(t, event, fixture.model)
 		timer.Stop()
 	case <-timer.C:
-		suite.Fail("timeout waiting event")
+		t.Error("timeout waiting event")
 	}
 }
 
-func (suite *ConsumerTestSuite) Test_consumer_Error() {
-	suite.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).
-		Return([]model.OfficeEvent{suite.model, suite.model}, errors.New("test lock error")).MinTimes(1)
+func Test_consumer_Error(t *testing.T) {
+	t.Parallel()
 
-	suite.consumer.Start()
-	defer suite.consumer.Close()
+	fixture := setUp(t)
+	defer fixture.tearDown()
 
-	time.Sleep(time.Millisecond * 2)
-	assert.Len(suite.T(), suite.events, 0)
+	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).
+		Return([]model.OfficeEvent{fixture.model, fixture.model}, errors.New("test lock error")).Times(2)
+
+	fixture.consumer.Start()
+	defer fixture.consumer.Close()
+
+	time.Sleep(time.Millisecond) // заменить
+
+	timer := time.NewTimer(time.Second)
+
+	select {
+	default:
+		assert.Len(t, fixture.events, 0)
+
+	case <-timer.C:
+		t.Error("timeout waiting event")
+	}
+
+	assert.Len(t, fixture.events, 0)
 }
