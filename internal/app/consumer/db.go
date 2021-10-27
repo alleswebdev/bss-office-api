@@ -15,7 +15,7 @@ type Consumer interface {
 }
 
 type consumer struct {
-	n      uint64
+	n      int
 	events chan<- model.OfficeEvent
 
 	repo repo.EventRepo
@@ -23,19 +23,19 @@ type consumer struct {
 	batchSize uint64
 	timeout   time.Duration
 
-	done chan interface{}
+	done chan struct{}
 	wg   *sync.WaitGroup
 }
 
 func NewDbConsumer(
-	n uint64,
+	n int,
 	batchSize uint64,
 	consumeTimeout time.Duration,
 	repo repo.EventRepo,
 	events chan<- model.OfficeEvent) Consumer {
 
 	var wg sync.WaitGroup
-	done := make(chan interface{})
+	done := make(chan struct{})
 
 	return &consumer{
 		n:         n,
@@ -49,7 +49,7 @@ func NewDbConsumer(
 }
 
 func (c *consumer) Start() {
-	for i := uint64(0); i < c.n; i++ {
+	for i := 0; i < c.n; i++ {
 		c.wg.Add(1)
 
 		go func() {

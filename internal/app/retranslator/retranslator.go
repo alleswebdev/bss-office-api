@@ -20,11 +20,11 @@ type Retranslator interface {
 type Config struct {
 	ChannelSize uint64
 
-	ConsumerCount  uint64
+	ConsumerCount  int
 	ConsumeSize    uint64
 	ConsumeTimeout time.Duration
 
-	ProducerCount uint64
+	ProducerCount int
 	WorkerCount   int
 
 	Repo   repo.EventRepo
