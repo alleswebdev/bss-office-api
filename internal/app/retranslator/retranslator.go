@@ -25,8 +25,10 @@ type Config struct {
 	ConsumeSize    uint64
 	ConsumeTimeout time.Duration
 
-	ProducerCount int
-	WorkerCount   int
+	ProducerCount     int
+	ProducerTimeout   time.Duration
+	ProducerBatchSize int
+	WorkerCount       int
 
 	Repo   repo.EventRepo
 	Sender sender.EventSender
@@ -51,6 +53,8 @@ func NewRetranslator(cfg Config) Retranslator {
 		events)
 	producer := producer.NewKafkaProducer(
 		cfg.ProducerCount,
+		cfg.ProducerBatchSize,
+		cfg.ProducerTimeout,
 		cfg.Sender,
 		cfg.Repo,
 		events,
