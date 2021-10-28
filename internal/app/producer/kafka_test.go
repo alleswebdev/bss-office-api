@@ -62,8 +62,10 @@ func TestProducer_Update(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
-	fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1).After(
-		fixture.sender.EXPECT().Send(gomock.Eq(&fixture.model)).Return(nil).Times(1))
+	gomock.InOrder(
+		fixture.sender.EXPECT().Send(gomock.Eq(&fixture.model)).Return(nil).Times(1),
+		fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1),
+	)
 
 	fixture.events <- fixture.model
 
@@ -82,10 +84,10 @@ func TestProducer_With_Error(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
-	fixture.repo.EXPECT().Remove(gomock.Any()).Return(nil).Times(0)
-
-	fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1).After(
-		fixture.sender.EXPECT().Send(gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(1))
+	gomock.InOrder(
+		fixture.sender.EXPECT().Send(gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(1),
+		fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1),
+	)
 
 	fixture.events <- fixture.model
 
