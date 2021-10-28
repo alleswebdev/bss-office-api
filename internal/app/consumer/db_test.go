@@ -7,12 +7,13 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/stretchr/testify/assert"
+	"sync"
 	"testing"
 	"time"
 )
 
 const testBatchSize = uint64(10)
-const testConsumerCount = 2
+const testConsumerCount = 10
 const testEventBufferSize = 512
 
 type ConsumerFixture struct {
@@ -57,7 +58,7 @@ func Test_consumer_Start(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
-	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{fixture.model}, nil).Times(2)
+	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{fixture.model}, nil).Times(testConsumerCount)
 
 	fixture.consumer.Start()
 	defer fixture.consumer.Close()
@@ -82,12 +83,17 @@ func Test_consumer_Error(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
-	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).
-		Return([]model.OfficeEvent{fixture.model, fixture.model}, errors.New("test lock error")).Times(2)
+	var wg sync.WaitGroup
+	wg.Add(testConsumerCount)
+
+	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).DoAndReturn(func(n uint64) ([]model.OfficeEvent, error) {
+		defer wg.Done()
+		return []model.OfficeEvent{fixture.model, fixture.model}, errors.New("test lock error")
+	}).Times(testConsumerCount)
 
 	fixture.consumer.Start()
 	defer fixture.consumer.Close()
 
-	time.Sleep(time.Millisecond)
+	wg.Wait()
 	assert.Len(t, fixture.events, 0)
 }

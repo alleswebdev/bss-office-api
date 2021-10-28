@@ -8,8 +8,8 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/stretchr/testify/assert"
+	"sync"
 	"testing"
-	"time"
 )
 
 const testProducerCount = 2
@@ -63,19 +63,24 @@ func TestProducer_Update(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	gomock.InOrder(
 		fixture.sender.EXPECT().Send(gomock.Eq(&fixture.model)).Return(nil).Times(1),
-		fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1),
+		fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(eventIDs []uint64) error {
+			wg.Done()
+			return nil
+		}).Times(1),
 	)
 
 	fixture.events <- fixture.model
-
 	assert.Len(t, fixture.events, 1)
 
 	fixture.producer.Start()
 	defer fixture.producer.Close()
 
-	time.Sleep(time.Millisecond * 5)
+	wg.Wait()
 	assert.Len(t, fixture.events, 0)
 }
 
@@ -85,9 +90,15 @@ func TestProducer_With_Error(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	gomock.InOrder(
 		fixture.sender.EXPECT().Send(gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(1),
-		fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).Return(nil).Times(1),
+		fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(eventIDs []uint64) error {
+			wg.Done()
+			return nil
+		}).Times(1),
 	)
 
 	fixture.events <- fixture.model
@@ -95,6 +106,6 @@ func TestProducer_With_Error(t *testing.T) {
 	fixture.producer.Start()
 	defer fixture.producer.Close()
 
-	time.Sleep(time.Millisecond) // убрать
+	wg.Wait()
 	assert.Len(t, fixture.events, 0)
 }
