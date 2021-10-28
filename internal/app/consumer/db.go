@@ -65,6 +65,7 @@ func (c *consumer) Start(ctx context.Context) {
 						c.events <- event
 					}
 				case <-ctx.Done():
+					ticker.Stop()
 					return
 				}
 			}
