@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"log"
 	"sync"
 	"time"
@@ -10,7 +11,7 @@ import (
 )
 
 type Consumer interface {
-	Start()
+	Start(ctx context.Context)
 	Close()
 }
 
@@ -23,8 +24,7 @@ type consumer struct {
 	batchSize uint64
 	timeout   time.Duration
 
-	done chan struct{}
-	wg   *sync.WaitGroup
+	wg *sync.WaitGroup
 }
 
 func NewDbConsumer(
@@ -35,7 +35,6 @@ func NewDbConsumer(
 	events chan<- model.OfficeEvent) Consumer {
 
 	var wg sync.WaitGroup
-	done := make(chan struct{})
 
 	return &consumer{
 		n:         n,
@@ -44,11 +43,10 @@ func NewDbConsumer(
 		repo:      repo,
 		events:    events,
 		wg:        &wg,
-		done:      done,
 	}
 }
 
-func (c *consumer) Start() {
+func (c *consumer) Start(ctx context.Context) {
 	for i := 0; i < c.n; i++ {
 		c.wg.Add(1)
 
@@ -66,7 +64,8 @@ func (c *consumer) Start() {
 					for _, event := range events {
 						c.events <- event
 					}
-				case <-c.done:
+				case <-ctx.Done():
+					ticker.Stop()
 					return
 				}
 			}
@@ -75,7 +74,6 @@ func (c *consumer) Start() {
 }
 
 func (c *consumer) Close() {
-	close(c.done)
 	c.wg.Wait()
 	close(c.events)
 }
