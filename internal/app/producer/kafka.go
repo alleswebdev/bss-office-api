@@ -21,7 +21,8 @@ type Producer interface {
 	Close()
 }
 
-var BatchUnlockErr = errors.New("batch updater: unlock error: %s")
+var UnlockErr = errors.New("producer: unlock error: %s")
+var RemoveErr = errors.New("producer: unlock error: %s")
 
 type producer struct {
 	n       int
@@ -137,7 +138,7 @@ func (p *producer) processUpdate(eventIDs []uint64) {
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
-			log.Printf("produser unlock error:%s \n", err)
+			log.Printf(UnlockErr.Error(), err)
 		}
 	})
 }
@@ -148,7 +149,8 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
-			errChan <- fmt.Errorf("produser unlock error:%s \n", err)
+			errChan <- fmt.Errorf(UnlockErr.Error(), err)
+			return
 		}
 
 		errChan <- nil
@@ -175,7 +177,7 @@ func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
 				if !ok {
 					err := p.processWaitUpdate(buffer)
 					if err != nil {
-						log.Printf(BatchUnlockErr.Error(), err)
+						log.Printf(UnlockErr.Error(), err)
 					}
 					ticker.Stop()
 					log.Println("update channel was closed")
@@ -188,7 +190,7 @@ func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
 					err := p.processWaitUpdate(buffer)
 
 					if err != nil {
-						log.Printf(BatchUnlockErr.Error(), err)
+						log.Printf(UnlockErr.Error(), err)
 						c <- id // вернём обратно, чтобы не потерять событие
 						continue
 					}
@@ -203,7 +205,7 @@ func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
 				err := p.processWaitUpdate(buffer)
 
 				if err != nil {
-					log.Printf(BatchUnlockErr.Error(), err)
+					log.Printf(UnlockErr.Error(), err)
 					continue
 				}
 
@@ -213,7 +215,7 @@ func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
 				if len(buffer) != 0 {
 					err := p.processWaitUpdate(buffer)
 					if err != nil {
-						log.Printf(BatchUnlockErr.Error(), err)
+						log.Printf(UnlockErr.Error(), err)
 					}
 				}
 
@@ -228,7 +230,7 @@ func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
 func (p *producer) processClean(eventIDs []uint64) {
 	err := p.repo.Remove(eventIDs)
 	if err != nil {
-		log.Printf("produser remove error:%s \n", err)
+		log.Printf(RemoveErr.Error(), err)
 	}
 }
 
@@ -238,7 +240,8 @@ func (p *producer) processWaitClean(eventIDs []uint64) error {
 	p.workerPool.Submit(func() {
 		err := p.repo.Remove(eventIDs)
 		if err != nil {
-			errChan <- fmt.Errorf("produser unlock error:%s \n", err)
+			errChan <- fmt.Errorf(RemoveErr.Error(), err)
+			return
 		}
 
 		errChan <- nil
@@ -265,7 +268,7 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 				if !ok {
 					err := p.processWaitClean(buffer)
 					if err != nil {
-						log.Printf(BatchUnlockErr.Error(), err)
+						log.Printf(RemoveErr.Error(), err)
 					}
 					ticker.Stop()
 					log.Println("cleaner channel was closed")
@@ -278,7 +281,7 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 					err := p.processWaitClean(buffer)
 
 					if err != nil {
-						log.Printf(BatchUnlockErr.Error(), err)
+						log.Printf(RemoveErr.Error(), err)
 						c <- id // вернём обратно, чтобы не потерять событие
 						continue
 					}
@@ -293,7 +296,7 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 				err := p.processWaitClean(buffer)
 
 				if err != nil {
-					log.Printf(BatchUnlockErr.Error(), err)
+					log.Printf(RemoveErr.Error(), err)
 					continue
 				}
 
@@ -303,7 +306,7 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 				if len(buffer) != 0 {
 					err := p.processWaitClean(buffer)
 					if err != nil {
-						log.Printf(BatchUnlockErr.Error(), err)
+						log.Printf(RemoveErr.Error(), err)
 					}
 				}
 
