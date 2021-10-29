@@ -22,7 +22,8 @@ type Producer interface {
 }
 
 var UnlockErr = errors.New("producer: unlock error: %s")
-var RemoveErr = errors.New("producer: unlock error: %s")
+var RemoveErr = errors.New("producer: remove error: %s")
+var ChannelCloseErr = errors.New("producer: consumer closed the channel ")
 
 type producer struct {
 	n       int
@@ -76,7 +77,7 @@ func (p *producer) Start(ctx context.Context) {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						fmt.Println("producer: consumer channel close")
+						fmt.Println(ChannelCloseErr)
 						return
 					}
 
@@ -111,7 +112,7 @@ func (p *producer) StartBatch(ctx context.Context) {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						fmt.Println("producer: consumer channel close")
+						fmt.Println(ChannelCloseErr)
 						return
 					}
 
@@ -159,7 +160,7 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	return <-errChan
 }
 
-// BatchUpdater слушает канал для  событий, id  которые необходимо разлочить
+// BatchUpdater слушает канал для  событий, id  которых необходимо разлочить
 // и складывает их в буфер размером Producer.batchSize, при наполнении буфера,
 // завершении контекста, или по итечению таймаута Producer.timeout
 // буфер отсылается в пул воркеров для разблокирования
