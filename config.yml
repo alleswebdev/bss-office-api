@@ -36,7 +36,7 @@ database:
   port: 5432
   user: docker
   password: docker
-  name: omp_template_api
+  name: bss_office_api
   sslmode: disable
   migrations: migrations
   driver: pgx

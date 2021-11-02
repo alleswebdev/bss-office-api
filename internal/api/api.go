@@ -17,7 +17,7 @@ import (
 
 var (
 	totalTemplateNotFound = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "omp_template_api_template_not_found_total",
+		Name: "bss_office_api_template_not_found_total",
 		Help: "Total number of templates that were not found",
 	})
 )
