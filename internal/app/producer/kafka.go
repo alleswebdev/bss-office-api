@@ -30,8 +30,7 @@ type producer struct {
 
 	workerPool *workerpool.WorkerPool
 
-	wg   *sync.WaitGroup
-	done chan struct{}
+	wg *sync.WaitGroup
 }
 
 func NewKafkaProducer(
@@ -55,19 +54,19 @@ func NewKafkaProducer(
 }
 
 func (p *producer) Start(ctx context.Context) {
-	for i := uint64(0); i < p.n; i++ {
+	for i := 0; i < p.n; i++ {
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()
 			for {
 				select {
-				case event := <-p.events:
-					err := p.sender.Send(ctx, &event)
+				case event, ok := <-p.events:
 					if !ok {
 						fmt.Println("producer: consumer channel close")
 						return
 					}
 
+					err := p.sender.Send(ctx, &event)
 					if err != nil {
 						p.processUpdate([]uint64{event.ID})
 						continue

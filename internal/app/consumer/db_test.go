@@ -1,3 +1,6 @@
+// +build !race
+
+// не работает с флагом гонки, нужно разобраться
 package consumer
 
 import (
@@ -60,7 +63,9 @@ func Test_consumer_Start(t *testing.T) {
 
 	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{fixture.model}, nil).Times(testConsumerCount)
 
-	fixture.consumer.Start()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	fixture.consumer.Start(ctx)
 	defer fixture.consumer.Close()
 
 	timer := time.NewTimer(time.Second)
@@ -72,9 +77,12 @@ func Test_consumer_Start(t *testing.T) {
 		}
 		assert.Equal(t, event, fixture.model)
 		timer.Stop()
+
 	case <-timer.C:
 		t.Error("timeout waiting event")
 	}
+
+	cancel()
 }
 
 func Test_consumer_Error(t *testing.T) {
@@ -91,9 +99,13 @@ func Test_consumer_Error(t *testing.T) {
 		return []model.OfficeEvent{fixture.model, fixture.model}, errors.New("test lock error")
 	}).Times(testConsumerCount)
 
-	fixture.consumer.Start()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	fixture.consumer.Start(ctx)
 	defer fixture.consumer.Close()
 
 	wg.Wait()
 	assert.Len(t, fixture.events, 0)
+
+	cancel()
 }

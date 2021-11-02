@@ -47,7 +47,7 @@ func NewDbConsumer(
 }
 
 func (c *consumer) Start(ctx context.Context) {
-	for i := uint64(0); i < c.n; i++ {
+	for i := 0; i < c.n; i++ {
 		c.wg.Add(1)
 
 		go func() {
