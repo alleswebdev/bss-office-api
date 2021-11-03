@@ -24,6 +24,7 @@ type Producer interface {
 var UnlockErr = errors.New("producer: unlock error: %s")
 var RemoveErr = errors.New("producer: remove error: %s")
 var ChannelCloseErr = errors.New("producer: consumer closed the channel ")
+var SenderErr = errors.New("producer: error send event: %s")
 
 type producer struct {
 	n       int
@@ -106,18 +107,21 @@ func (p *producer) StartBatch(ctx context.Context) {
 			defer p.wg.Done()
 
 			updateChannel := p.startBatchUpdater(ctx)
+			defer close(updateChannel)
 			removeChannel := p.startBatchCleaner(ctx)
+			defer close(removeChannel)
 
 			for {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						fmt.Println(ChannelCloseErr)
+						log.Println(ChannelCloseErr)
 						return
 					}
 
 					err := p.sender.Send(ctx, &event)
 					if err != nil {
+						log.Printf(SenderErr.Error(), err)
 						updateChannel <- event.ID
 						continue
 					}
@@ -147,6 +151,7 @@ func (p *producer) processUpdate(eventIDs []uint64) {
 // processWaitUpdate разблокирует записи в репозитории и дожидается возврата ошибки
 func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	errChan := make(chan error)
+	defer close(errChan)
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
