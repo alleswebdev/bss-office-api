@@ -4,7 +4,6 @@ package ozonmp.bss_office_api.v1;
 
 import "validate/validate.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_api";
 
