@@ -43,7 +43,6 @@ message Office {
   uint64 id = 1 [(validate.rules).uint64.gt = 0];
   string name = 2  [(validate.rules).string = {min_len: 2, max_len: 100}];
   string description = 3;
-  google.protobuf.Timestamp created = 4;
 }
 
 message DescribeOfficeV1Request {
