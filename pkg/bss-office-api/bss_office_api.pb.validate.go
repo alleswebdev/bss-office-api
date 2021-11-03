@@ -33,20 +33,32 @@ var (
 	_ = anypb.Any{}
 )
 
-// Validate checks the field values on Template with the rules defined in the
+// Validate checks the field values on Office with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
-func (m *Template) Validate() error {
+func (m *Office) Validate() error {
 	if m == nil {
 		return nil
 	}
 
-	// no validation rules for Id
+	if m.GetId() <= 0 {
+		return OfficeValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for Foo
+	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 100 {
+		return OfficeValidationError{
+			field:  "Name",
+			reason: "value length must be between 2 and 100 runes, inclusive",
+		}
+	}
+
+	// no validation rules for Description
 
 	if v, ok := interface{}(m.GetCreated()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return TemplateValidationError{
+			return OfficeValidationError{
 				field:  "Created",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -57,9 +69,9 @@ func (m *Template) Validate() error {
 	return nil
 }
 
-// TemplateValidationError is the validation error returned by
-// Template.Validate if the designated constraints aren't met.
-type TemplateValidationError struct {
+// OfficeValidationError is the validation error returned by Office.Validate if
+// the designated constraints aren't met.
+type OfficeValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -67,22 +79,22 @@ type TemplateValidationError struct {
 }
 
 // Field function returns field value.
-func (e TemplateValidationError) Field() string { return e.field }
+func (e OfficeValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TemplateValidationError) Reason() string { return e.reason }
+func (e OfficeValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TemplateValidationError) Cause() error { return e.cause }
+func (e OfficeValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TemplateValidationError) Key() bool { return e.key }
+func (e OfficeValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TemplateValidationError) ErrorName() string { return "TemplateValidationError" }
+func (e OfficeValidationError) ErrorName() string { return "OfficeValidationError" }
 
 // Error satisfies the builtin error interface
-func (e TemplateValidationError) Error() string {
+func (e OfficeValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -94,14 +106,14 @@ func (e TemplateValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTemplate.%s: %s%s",
+		"invalid %sOffice.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TemplateValidationError{}
+var _ error = OfficeValidationError{}
 
 var _ interface {
 	Field() string
@@ -109,19 +121,19 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TemplateValidationError{}
+} = OfficeValidationError{}
 
-// Validate checks the field values on DescribeTemplateV1Request with the rules
+// Validate checks the field values on DescribeOfficeV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
-func (m *DescribeTemplateV1Request) Validate() error {
+func (m *DescribeOfficeV1Request) Validate() error {
 	if m == nil {
 		return nil
 	}
 
-	if m.GetTemplateId() <= 0 {
-		return DescribeTemplateV1RequestValidationError{
-			field:  "TemplateId",
+	if m.GetOfficeId() <= 0 {
+		return DescribeOfficeV1RequestValidationError{
+			field:  "OfficeId",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -129,9 +141,9 @@ func (m *DescribeTemplateV1Request) Validate() error {
 	return nil
 }
 
-// DescribeTemplateV1RequestValidationError is the validation error returned by
-// DescribeTemplateV1Request.Validate if the designated constraints aren't met.
-type DescribeTemplateV1RequestValidationError struct {
+// DescribeOfficeV1RequestValidationError is the validation error returned by
+// DescribeOfficeV1Request.Validate if the designated constraints aren't met.
+type DescribeOfficeV1RequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -139,24 +151,24 @@ type DescribeTemplateV1RequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e DescribeTemplateV1RequestValidationError) Field() string { return e.field }
+func (e DescribeOfficeV1RequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DescribeTemplateV1RequestValidationError) Reason() string { return e.reason }
+func (e DescribeOfficeV1RequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DescribeTemplateV1RequestValidationError) Cause() error { return e.cause }
+func (e DescribeOfficeV1RequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DescribeTemplateV1RequestValidationError) Key() bool { return e.key }
+func (e DescribeOfficeV1RequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DescribeTemplateV1RequestValidationError) ErrorName() string {
-	return "DescribeTemplateV1RequestValidationError"
+func (e DescribeOfficeV1RequestValidationError) ErrorName() string {
+	return "DescribeOfficeV1RequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e DescribeTemplateV1RequestValidationError) Error() string {
+func (e DescribeOfficeV1RequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -168,14 +180,14 @@ func (e DescribeTemplateV1RequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDescribeTemplateV1Request.%s: %s%s",
+		"invalid %sDescribeOfficeV1Request.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DescribeTemplateV1RequestValidationError{}
+var _ error = DescribeOfficeV1RequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -183,19 +195,19 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DescribeTemplateV1RequestValidationError{}
+} = DescribeOfficeV1RequestValidationError{}
 
-// Validate checks the field values on DescribeTemplateV1Response with the
-// rules defined in the proto definition for this message. If any rules are
+// Validate checks the field values on DescribeOfficeV1Response with the rules
+// defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
-func (m *DescribeTemplateV1Response) Validate() error {
+func (m *DescribeOfficeV1Response) Validate() error {
 	if m == nil {
 		return nil
 	}
 
 	if v, ok := interface{}(m.GetValue()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return DescribeTemplateV1ResponseValidationError{
+			return DescribeOfficeV1ResponseValidationError{
 				field:  "Value",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -206,9 +218,9 @@ func (m *DescribeTemplateV1Response) Validate() error {
 	return nil
 }
 
-// DescribeTemplateV1ResponseValidationError is the validation error returned
-// by DescribeTemplateV1Response.Validate if the designated constraints aren't met.
-type DescribeTemplateV1ResponseValidationError struct {
+// DescribeOfficeV1ResponseValidationError is the validation error returned by
+// DescribeOfficeV1Response.Validate if the designated constraints aren't met.
+type DescribeOfficeV1ResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -216,24 +228,24 @@ type DescribeTemplateV1ResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e DescribeTemplateV1ResponseValidationError) Field() string { return e.field }
+func (e DescribeOfficeV1ResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DescribeTemplateV1ResponseValidationError) Reason() string { return e.reason }
+func (e DescribeOfficeV1ResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DescribeTemplateV1ResponseValidationError) Cause() error { return e.cause }
+func (e DescribeOfficeV1ResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DescribeTemplateV1ResponseValidationError) Key() bool { return e.key }
+func (e DescribeOfficeV1ResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DescribeTemplateV1ResponseValidationError) ErrorName() string {
-	return "DescribeTemplateV1ResponseValidationError"
+func (e DescribeOfficeV1ResponseValidationError) ErrorName() string {
+	return "DescribeOfficeV1ResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e DescribeTemplateV1ResponseValidationError) Error() string {
+func (e DescribeOfficeV1ResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -245,14 +257,14 @@ func (e DescribeTemplateV1ResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDescribeTemplateV1Response.%s: %s%s",
+		"invalid %sDescribeOfficeV1Response.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DescribeTemplateV1ResponseValidationError{}
+var _ error = DescribeOfficeV1ResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -260,4 +272,446 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DescribeTemplateV1ResponseValidationError{}
+} = DescribeOfficeV1ResponseValidationError{}
+
+// Validate checks the field values on CreateOfficeV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateOfficeV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 100 {
+		return CreateOfficeV1RequestValidationError{
+			field:  "Name",
+			reason: "value length must be between 2 and 100 runes, inclusive",
+		}
+	}
+
+	// no validation rules for Description
+
+	return nil
+}
+
+// CreateOfficeV1RequestValidationError is the validation error returned by
+// CreateOfficeV1Request.Validate if the designated constraints aren't met.
+type CreateOfficeV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateOfficeV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateOfficeV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateOfficeV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateOfficeV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateOfficeV1RequestValidationError) ErrorName() string {
+	return "CreateOfficeV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateOfficeV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateOfficeV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateOfficeV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateOfficeV1RequestValidationError{}
+
+// Validate checks the field values on CreateOfficeV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateOfficeV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetOfficeId() <= 0 {
+		return CreateOfficeV1ResponseValidationError{
+			field:  "OfficeId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	return nil
+}
+
+// CreateOfficeV1ResponseValidationError is the validation error returned by
+// CreateOfficeV1Response.Validate if the designated constraints aren't met.
+type CreateOfficeV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateOfficeV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateOfficeV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateOfficeV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateOfficeV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateOfficeV1ResponseValidationError) ErrorName() string {
+	return "CreateOfficeV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateOfficeV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateOfficeV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateOfficeV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateOfficeV1ResponseValidationError{}
+
+// Validate checks the field values on ListOfficesV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ListOfficesV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// ListOfficesV1RequestValidationError is the validation error returned by
+// ListOfficesV1Request.Validate if the designated constraints aren't met.
+type ListOfficesV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOfficesV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOfficesV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOfficesV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOfficesV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOfficesV1RequestValidationError) ErrorName() string {
+	return "ListOfficesV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOfficesV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOfficesV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOfficesV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOfficesV1RequestValidationError{}
+
+// Validate checks the field values on ListOfficesV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ListOfficesV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetItems() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListOfficesV1ResponseValidationError{
+					field:  fmt.Sprintf("Items[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ListOfficesV1ResponseValidationError is the validation error returned by
+// ListOfficesV1Response.Validate if the designated constraints aren't met.
+type ListOfficesV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOfficesV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOfficesV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOfficesV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOfficesV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOfficesV1ResponseValidationError) ErrorName() string {
+	return "ListOfficesV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOfficesV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOfficesV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOfficesV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOfficesV1ResponseValidationError{}
+
+// Validate checks the field values on RemoveOfficeV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RemoveOfficeV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetOfficeId() <= 0 {
+		return RemoveOfficeV1RequestValidationError{
+			field:  "OfficeId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	return nil
+}
+
+// RemoveOfficeV1RequestValidationError is the validation error returned by
+// RemoveOfficeV1Request.Validate if the designated constraints aren't met.
+type RemoveOfficeV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemoveOfficeV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemoveOfficeV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemoveOfficeV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemoveOfficeV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemoveOfficeV1RequestValidationError) ErrorName() string {
+	return "RemoveOfficeV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemoveOfficeV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemoveOfficeV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemoveOfficeV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemoveOfficeV1RequestValidationError{}
+
+// Validate checks the field values on RemoveOfficeV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RemoveOfficeV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Found
+
+	return nil
+}
+
+// RemoveOfficeV1ResponseValidationError is the validation error returned by
+// RemoveOfficeV1Response.Validate if the designated constraints aren't met.
+type RemoveOfficeV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemoveOfficeV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemoveOfficeV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemoveOfficeV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemoveOfficeV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemoveOfficeV1ResponseValidationError) ErrorName() string {
+	return "RemoveOfficeV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemoveOfficeV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemoveOfficeV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemoveOfficeV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemoveOfficeV1ResponseValidationError{}
