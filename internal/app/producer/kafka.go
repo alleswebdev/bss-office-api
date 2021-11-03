@@ -4,24 +4,22 @@ import (
 	"context"
 	"fmt"
 	"github.com/ozonmp/bss-office-api/internal/app/repo"
-	"log"
-	"sync"
-	"time"
-
 	"github.com/ozonmp/bss-office-api/internal/app/sender"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"log"
+	"sync"
 
 	"github.com/gammazero/workerpool"
 )
 
+// Producer interface
 type Producer interface {
 	Start(ctx context.Context)
 	Close()
 }
 
 type producer struct {
-	n       int
-	timeout time.Duration
+	n int
 
 	repo repo.EventRepo
 
@@ -33,6 +31,7 @@ type producer struct {
 	wg *sync.WaitGroup
 }
 
+// NewKafkaProducer create a new kafka producer
 func NewKafkaProducer(
 	n int,
 	sender sender.EventSender,

@@ -1,4 +1,4 @@
-package api
+package api //nolint:dupl
 
 import (
 	"context"
@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-type ApiFixture struct {
+type APIFixture struct {
 	repo      *mocks.MockRepo
 	ctrl      *gomock.Controller
 	apiServer bss_office_api.BssOfficeApiServiceServer
 }
 
-func setUp(t *testing.T) ApiFixture {
-	var fixture ApiFixture
+func setUp(t *testing.T) APIFixture {
+	var fixture APIFixture
 
 	fixture.ctrl = gomock.NewController(t)
 	fixture.repo = mocks.NewMockRepo(fixture.ctrl)
@@ -28,6 +28,7 @@ func setUp(t *testing.T) ApiFixture {
 	return fixture
 }
 
+//nolint:dupl
 func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 	t.Parallel()
 

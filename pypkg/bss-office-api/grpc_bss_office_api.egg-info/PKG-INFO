@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: grpc-bss-office-api
+Version: 1.0.0
+Summary: GRPC python client for bss-office-api
+Home-page: https://github.com/ozonmp/bss-office-api
+Author: rusdevop
+Author-email: rusdevops@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.5

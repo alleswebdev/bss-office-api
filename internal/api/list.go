@@ -24,7 +24,7 @@ func (o *officeAPI) ListOfficesV1(
 	pbItems := make([]*pb.Office, 0, len(items))
 
 	for _, item := range items {
-		pbItems = append(pbItems, convertOfficeToPb(&item))
+		pbItems = append(pbItems, convertOfficeToPb(item))
 	}
 
 	return &pb.ListOfficesV1Response{

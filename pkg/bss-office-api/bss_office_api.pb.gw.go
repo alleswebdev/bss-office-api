@@ -83,18 +83,15 @@ func local_request_BssOfficeApiService_DescribeOfficeV1_0(ctx context.Context, m
 
 }
 
-var (
-	filter_BssOfficeApiService_CreateOfficeV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_BssOfficeApiService_CreateOfficeV1_0(ctx context.Context, marshaler runtime.Marshaler, client BssOfficeApiServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateOfficeV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_BssOfficeApiService_CreateOfficeV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -107,10 +104,11 @@ func local_request_BssOfficeApiService_CreateOfficeV1_0(ctx context.Context, mar
 	var protoReq CreateOfficeV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_BssOfficeApiService_CreateOfficeV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -195,13 +193,13 @@ func local_request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, mars
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterBssOfficeApiServiceHandlerFromEndpoint instead.
 func RegisterBssOfficeApiServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server BssOfficeApiServiceServer) error {
 
-	mux.Handle("POST", pattern_BssOfficeApiService_DescribeOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_BssOfficeApiService_DescribeOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/DescribeOfficeV1", runtime.WithHTTPPathPattern("/v1/office/{office_id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/DescribeOfficeV1", runtime.WithHTTPPathPattern("/api/v1/office/{office_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -224,7 +222,7 @@ func RegisterBssOfficeApiServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/CreateOfficeV1", runtime.WithHTTPPathPattern("/v1/office"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/CreateOfficeV1", runtime.WithHTTPPathPattern("/api/v1/office"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -241,13 +239,13 @@ func RegisterBssOfficeApiServiceHandlerServer(ctx context.Context, mux *runtime.
 
 	})
 
-	mux.Handle("POST", pattern_BssOfficeApiService_RemoveOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_BssOfficeApiService_RemoveOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/RemoveOfficeV1", runtime.WithHTTPPathPattern("/v1/office/{office_id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/RemoveOfficeV1", runtime.WithHTTPPathPattern("/api/v1/office/{office_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -264,13 +262,13 @@ func RegisterBssOfficeApiServiceHandlerServer(ctx context.Context, mux *runtime.
 
 	})
 
-	mux.Handle("POST", pattern_BssOfficeApiService_ListOfficesV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_BssOfficeApiService_ListOfficesV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/v1/office/list"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/api/v1/office/list"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -328,11 +326,11 @@ func RegisterBssOfficeApiServiceHandler(ctx context.Context, mux *runtime.ServeM
 // "BssOfficeApiServiceClient" to call the correct interceptors.
 func RegisterBssOfficeApiServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client BssOfficeApiServiceClient) error {
 
-	mux.Handle("POST", pattern_BssOfficeApiService_DescribeOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_BssOfficeApiService_DescribeOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/DescribeOfficeV1", runtime.WithHTTPPathPattern("/v1/office/{office_id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/DescribeOfficeV1", runtime.WithHTTPPathPattern("/api/v1/office/{office_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -352,7 +350,7 @@ func RegisterBssOfficeApiServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/CreateOfficeV1", runtime.WithHTTPPathPattern("/v1/office"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/CreateOfficeV1", runtime.WithHTTPPathPattern("/api/v1/office"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -368,11 +366,11 @@ func RegisterBssOfficeApiServiceHandlerClient(ctx context.Context, mux *runtime.
 
 	})
 
-	mux.Handle("POST", pattern_BssOfficeApiService_RemoveOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_BssOfficeApiService_RemoveOfficeV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/RemoveOfficeV1", runtime.WithHTTPPathPattern("/v1/office/{office_id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/RemoveOfficeV1", runtime.WithHTTPPathPattern("/api/v1/office/{office_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -388,11 +386,11 @@ func RegisterBssOfficeApiServiceHandlerClient(ctx context.Context, mux *runtime.
 
 	})
 
-	mux.Handle("POST", pattern_BssOfficeApiService_ListOfficesV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_BssOfficeApiService_ListOfficesV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/v1/office/list"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/api/v1/office/list"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -412,13 +410,13 @@ func RegisterBssOfficeApiServiceHandlerClient(ctx context.Context, mux *runtime.
 }
 
 var (
-	pattern_BssOfficeApiService_DescribeOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "office", "office_id"}, ""))
+	pattern_BssOfficeApiService_DescribeOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "office", "office_id"}, ""))
 
-	pattern_BssOfficeApiService_CreateOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "office"}, ""))
+	pattern_BssOfficeApiService_CreateOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "office"}, ""))
 
-	pattern_BssOfficeApiService_RemoveOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "office", "office_id"}, ""))
+	pattern_BssOfficeApiService_RemoveOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "office", "office_id"}, ""))
 
-	pattern_BssOfficeApiService_ListOfficesV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "office", "list"}, ""))
+	pattern_BssOfficeApiService_ListOfficesV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "office", "list"}, ""))
 )
 
 var (

@@ -25,6 +25,7 @@ func (o *officeAPI) CreateOfficeV1(
 		Name:        req.GetName(),
 		Description: req.Description,
 	})
+
 	if err != nil {
 		log.Error().Err(err).Msg("CreateOfficeV1 -- failed")
 

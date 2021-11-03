@@ -66,10 +66,10 @@ func (mr *MockRepoMockRecorder) DescribeOffice(arg0, arg1 interface{}) *gomock.C
 }
 
 // ListOffices mocks base method.
-func (m *MockRepo) ListOffices(arg0 context.Context) ([]model.Office, error) {
+func (m *MockRepo) ListOffices(arg0 context.Context) ([]*model.Office, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListOffices", arg0)
-	ret0, _ := ret[0].([]model.Office)
+	ret0, _ := ret[0].([]*model.Office)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

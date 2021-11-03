@@ -13,27 +13,28 @@ service BssOfficeApiService {
   // DescribeOfficeV1 - Describe a office
   rpc DescribeOfficeV1(DescribeOfficeV1Request) returns (DescribeOfficeV1Response) {
     option (google.api.http) = {
-      post: "/v1/office/{office_id}"
+      get: "/api/v1/office/{office_id}"
     };
   }
   // CreateOfficeV1 - Create new office
   rpc CreateOfficeV1(CreateOfficeV1Request) returns (CreateOfficeV1Response) {
     option (google.api.http) = {
-      post: "/v1/office"
+      post: "/api/v1/office",
+      body: "*"
     };
   }
 
   // RemoveOfficeV1 - delete the office by id
   rpc RemoveOfficeV1(RemoveOfficeV1Request) returns (RemoveOfficeV1Response) {
     option (google.api.http) = {
-      post: "/v1/office/{office_id}"
+      delete: "/api/v1/office/{office_id}"
     };
   }
 
   // ListOfficeV1 - list of offices
   rpc ListOfficesV1(ListOfficesV1Request) returns (ListOfficesV1Response) {
     option (google.api.http) = {
-      post: "/v1/office/list"
+      get: "/api/v1/office/list"
     };
   }
 }
