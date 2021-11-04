@@ -1,6 +1,6 @@
 package model
 
-// EventType event type on of:
+// EventType enum for event type
 type EventType uint8
 
 // EventStatus enum for event status
