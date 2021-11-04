@@ -18,6 +18,15 @@ type Retranslator interface {
 	Close()
 }
 
+// Config конфигурирует запускаемый экземпляр ретранслятора
+// ChannelSize - размер канала пересылаемых событий
+// ConsumerCount - количество горутин с Consumer
+// ConsumeSize  - размер канала Consumer
+// ConsumeTimeout - время ожидания до следующего batch-запроса
+// ProducerCount - количество горутин с Producer
+// WorkerCount - количество воркеров в воркерпуле для очистки и обновления событий в БД после отправки в брокер сообщений
+// Repo - репозиторий для работы с событиями
+// Sender - сервис для отправки событий в кафку
 type Config struct {
 	ChannelSize uint64
 
@@ -41,6 +50,7 @@ type retranslator struct {
 	workerPool *workerpool.WorkerPool
 }
 
+// NewRetranslator create new Retranslator from config
 func NewRetranslator(cfg Config) Retranslator {
 	events := make(chan model.OfficeEvent, cfg.ChannelSize)
 	workerPool := workerpool.New(cfg.WorkerCount)
@@ -68,11 +78,13 @@ func NewRetranslator(cfg Config) Retranslator {
 	}
 }
 
+// Start запускает ранее сконфигурированный ретранслятор и его продюсееров и консюмеров
 func (r *retranslator) Start(ctx context.Context) {
 	r.producer.Start(ctx)
 	r.consumer.Start(ctx)
 }
 
+// Close останавливает работу ретрянслятора, его продюсеров, консюмеров и воркерпул
 func (r *retranslator) Close() {
 	r.consumer.Close()
 	r.producer.Close()

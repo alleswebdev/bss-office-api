@@ -1,3 +1,4 @@
+// Package producer предназначен для пересылки событий в брокер сообщений
 package producer
 
 import (
@@ -15,17 +16,18 @@ import (
 	"github.com/gammazero/workerpool"
 )
 
+// Producer interface
 type Producer interface {
 	Start(ctx context.Context)
 	StartBatch(ctx context.Context)
 	Close()
 }
 
-var UnlockErr = errors.New("producer: unlock error: %s")
-var RemoveErr = errors.New("producer: remove error: %s")
-var BatchHandlerErr = errors.New("producer: batch handler error: %s")
-var ChannelCloseErr = errors.New("producer: consumer closed the channel ")
-var SenderErr = errors.New("producer: error send event: %s")
+var ErrUnlock = errors.New("producer: unlock error: %s")
+var ErrRemove = errors.New("producer: remove error: %s")
+var ErrBatchHandler = errors.New("producer: batch handler error: %s")
+var ErrChannelClose = errors.New("producer: consumer closed the channel ")
+var ErrSender = errors.New("producer: error send event: %s")
 
 type producer struct {
 	n       int
@@ -42,6 +44,7 @@ type producer struct {
 	wg *sync.WaitGroup
 }
 
+// NewKafkaProducer create a new kafka producer
 func NewKafkaProducer(
 	n int,
 	batchSize int,
@@ -79,7 +82,7 @@ func (p *producer) Start(ctx context.Context) {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						fmt.Println(ChannelCloseErr)
+						fmt.Println(ErrChannelClose)
 						return
 					}
 
@@ -116,13 +119,13 @@ func (p *producer) StartBatch(ctx context.Context) {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						log.Println(ChannelCloseErr)
+						log.Println(ErrChannelClose)
 						return
 					}
 
 					err := p.sender.Send(ctx, &event)
 					if err != nil {
-						log.Printf(SenderErr.Error(), err)
+						log.Printf(ErrSender.Error(), err)
 						updateChannel <- event.ID
 						continue
 					}
@@ -144,7 +147,7 @@ func (p *producer) processUpdate(eventIDs []uint64) {
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
-			log.Printf(UnlockErr.Error(), err)
+			log.Printf(ErrUnlock.Error(), err)
 		}
 	})
 }
@@ -156,7 +159,7 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
-			errChan <- fmt.Errorf(UnlockErr.Error(), err)
+			errChan <- fmt.Errorf(ErrUnlock.Error(), err)
 			return
 		}
 
@@ -169,7 +172,7 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 func (p *producer) processClean(eventIDs []uint64) {
 	err := p.repo.Remove(eventIDs)
 	if err != nil {
-		log.Printf(RemoveErr.Error(), err)
+		log.Printf(ErrRemove.Error(), err)
 	}
 }
 
@@ -181,7 +184,7 @@ func (p *producer) processWaitClean(eventIDs []uint64) error {
 	p.workerPool.Submit(func() {
 		err := p.repo.Remove(eventIDs)
 		if err != nil {
-			errChan <- fmt.Errorf(RemoveErr.Error(), err)
+			errChan <- fmt.Errorf(ErrRemove.Error(), err)
 			return
 		}
 
@@ -215,7 +218,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 					if len(buffer) > 0 {
 						err := f(buffer)
 						if err != nil {
-							log.Printf(BatchHandlerErr.Error(), err)
+							log.Printf(ErrBatchHandler.Error(), err)
 						}
 					}
 
@@ -230,7 +233,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 					err := f(buffer)
 
 					if err != nil {
-						log.Printf(BatchHandlerErr.Error(), err)
+						log.Printf(ErrBatchHandler.Error(), err)
 						c <- id // вернём обратно, чтобы не потерять событие
 						continue
 					}
@@ -245,7 +248,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 				err := f(buffer)
 
 				if err != nil {
-					log.Printf(BatchHandlerErr.Error(), err)
+					log.Printf(ErrBatchHandler.Error(), err)
 					continue
 				}
 
@@ -255,7 +258,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 				if len(buffer) != 0 {
 					err := f(buffer)
 					if err != nil {
-						log.Printf(BatchHandlerErr.Error(), err)
+						log.Printf(ErrBatchHandler.Error(), err)
 					}
 				}
 

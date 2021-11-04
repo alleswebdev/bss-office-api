@@ -1,3 +1,4 @@
+// Package consumer  получает модели событий из репозитория и пересылает продюсерам
 package consumer
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/model"
 )
 
+// Consumer interface
 type Consumer interface {
 	Start(ctx context.Context)
 	Close()
@@ -27,6 +29,14 @@ type consumer struct {
 	wg *sync.WaitGroup
 }
 
+// NewDbConsumer create a new consumer
+// n - количество гоурутин с консюмерами
+// batchSize - количество получаемых событий из репозитория за раз
+// consumeTimeout - периодичность получение событий из репозитория
+// repo - репозиторий для работы
+// events - канал для работы с продюсером, события будут записываться в него
+//
+// при завершении работы консюмер закроет канал events
 func NewDbConsumer(
 	n int,
 	batchSize uint64,
