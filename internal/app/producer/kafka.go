@@ -23,6 +23,7 @@ type Producer interface {
 
 var UnlockErr = errors.New("producer: unlock error: %s")
 var RemoveErr = errors.New("producer: remove error: %s")
+var BatchHandlerErr = errors.New("producer: batch handler error: %s")
 var ChannelCloseErr = errors.New("producer: consumer closed the channel ")
 var SenderErr = errors.New("producer: error send event: %s")
 
@@ -106,8 +107,8 @@ func (p *producer) StartBatch(ctx context.Context) {
 		go func() {
 			defer p.wg.Done()
 
-			updateChannel := p.startBatchUpdater(ctx)
-			removeChannel := p.startBatchCleaner(ctx)
+			updateChannel := p.startBatchHandler(ctx, p.processWaitUpdate)
+			removeChannel := p.startBatchHandler(ctx, p.processWaitClean)
 			defer close(updateChannel)
 			defer close(removeChannel)
 
@@ -165,76 +166,6 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	return <-errChan
 }
 
-// BatchUpdater слушает канал для  событий, id  которых необходимо разлочить
-// и складывает их в буфер размером Producer.batchSize, при наполнении буфера,
-// завершении контекста, или по итечению таймаута Producer.timeout
-// буфер отсылается в пул воркеров для разблокирования
-// Для остановки необходимо завершить переданый контекст
-func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
-	c := make(chan uint64)
-
-	buffer := make([]uint64, 0, p.batchSize)
-	ticker := time.NewTicker(p.timeout)
-
-	go func() {
-		for {
-			select {
-			case id, ok := <-c:
-				if !ok {
-					if len(buffer) > 0 {
-						err := p.processWaitUpdate(buffer)
-						if err != nil {
-							log.Printf(UnlockErr.Error(), err)
-						}
-					}
-
-					log.Println("update channel was closed")
-					return
-				}
-
-				buffer = append(buffer, id)
-
-				if len(buffer) >= p.batchSize {
-					err := p.processWaitUpdate(buffer)
-
-					if err != nil {
-						log.Printf(UnlockErr.Error(), err)
-						c <- id // вернём обратно, чтобы не потерять событие
-						continue
-					}
-
-					buffer = buffer[:0]
-					continue
-				}
-			case <-ticker.C:
-				if len(buffer) == 0 {
-					continue
-				}
-				err := p.processWaitUpdate(buffer)
-
-				if err != nil {
-					log.Printf(UnlockErr.Error(), err)
-					continue
-				}
-
-				buffer = buffer[:0]
-			case <-ctx.Done():
-				ticker.Stop()
-				if len(buffer) != 0 {
-					err := p.processWaitUpdate(buffer)
-					if err != nil {
-						log.Printf(UnlockErr.Error(), err)
-					}
-				}
-
-				return
-			}
-		}
-	}()
-
-	return c
-}
-
 func (p *producer) processClean(eventIDs []uint64) {
 	err := p.repo.Remove(eventIDs)
 	if err != nil {
@@ -260,12 +191,17 @@ func (p *producer) processWaitClean(eventIDs []uint64) error {
 	return <-errChan
 }
 
-// startBatchCleaner слушает канал для событий, id которых необходимо удалить
+// startBatchHandler предназначен для пакетного удаления и обновления событий в репозитории
+// вторым аргументом передаётся функция для удаления/обновления событий (processWaitUpdate или processWaitClean)
+// startBatchHandler слушает канал для событий, id которых необходимо обработать
 // и складывает их в буфер размером Producer.batchSize, при наполнении буфера,
-// завершении контекста, или по итечению таймаута Producer.timeout
-// буфер отсылается в пул воркеров для удаления
+// завершении контекста, или по таймауту Producer.timeout
+// буфер отсылается в пул воркеров для обработки через переданную функцию
 // Для остановки необходимо завершить переданый контекст
-func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
+//
+// startBatchHandler возвращает канал для работы с событиями, вызывающий функцию должен закрыть этот канал
+// при завершении работы
+func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) error) chan<- uint64 {
 	c := make(chan uint64)
 
 	buffer := make([]uint64, 0, p.batchSize)
@@ -277,24 +213,24 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 			case id, ok := <-c:
 				if !ok {
 					if len(buffer) > 0 {
-						err := p.processWaitClean(buffer)
+						err := f(buffer)
 						if err != nil {
-							log.Printf(RemoveErr.Error(), err)
+							log.Printf(BatchHandlerErr.Error(), err)
 						}
 					}
 
 					ticker.Stop()
-					log.Println("cleaner channel was closed")
+					log.Println("batch handler channel was closed")
 					return
 				}
 
 				buffer = append(buffer, id)
 
 				if len(buffer) >= p.batchSize {
-					err := p.processWaitClean(buffer)
+					err := f(buffer)
 
 					if err != nil {
-						log.Printf(RemoveErr.Error(), err)
+						log.Printf(BatchHandlerErr.Error(), err)
 						c <- id // вернём обратно, чтобы не потерять событие
 						continue
 					}
@@ -306,10 +242,10 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 				if len(buffer) == 0 {
 					continue
 				}
-				err := p.processWaitClean(buffer)
+				err := f(buffer)
 
 				if err != nil {
-					log.Printf(RemoveErr.Error(), err)
+					log.Printf(BatchHandlerErr.Error(), err)
 					continue
 				}
 
@@ -317,9 +253,9 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 			case <-ctx.Done():
 				ticker.Stop()
 				if len(buffer) != 0 {
-					err := p.processWaitClean(buffer)
+					err := f(buffer)
 					if err != nil {
-						log.Printf(RemoveErr.Error(), err)
+						log.Printf(BatchHandlerErr.Error(), err)
 					}
 				}
 
