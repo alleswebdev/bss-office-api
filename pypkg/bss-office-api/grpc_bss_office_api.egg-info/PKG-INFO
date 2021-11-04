@@ -3,8 +3,8 @@ Name: grpc-bss-office-api
 Version: 1.0.0
 Summary: GRPC python client for bss-office-api
 Home-page: https://github.com/ozonmp/bss-office-api
-Author: rusdevop
-Author-email: rusdevops@gmail.com
+Author: aalles
+Author-email: alleswebdev@gmail.com
 License: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN

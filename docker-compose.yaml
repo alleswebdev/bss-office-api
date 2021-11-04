@@ -206,7 +206,14 @@ services:
     volumes:
       - esdata:/usr/share/elasticsearch/data
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/6.x/docker.html
-
+  pypiserver:
+    image: pypiserver/pypiserver:latest
+    networks:
+      - ompnw
+    ports:
+      - 8086:8080
+    volumes:
+      - ./pypkg/bss-office-api/dist:/data/packages
   mongo:
     image: mongo:4.2
     restart: always

@@ -10,6 +10,7 @@ google/protobuf/timestamp_grpc.py
 google/protobuf/timestamp_pb2.py
 grpc_bss_office_api.egg-info/PKG-INFO
 grpc_bss_office_api.egg-info/SOURCES.txt
+grpc_bss_office_api.egg-info/__init__.py
 grpc_bss_office_api.egg-info/dependency_links.txt
 grpc_bss_office_api.egg-info/top_level.txt
 ozonmp/__init__.py
