@@ -23,11 +23,11 @@ type Producer interface {
 	Close()
 }
 
-var ErrUnlock = errors.New("producer: unlock error: %s")
-var ErrRemove = errors.New("producer: remove error: %s")
-var ErrBatchHandler = errors.New("producer: batch handler error: %s")
-var ErrChannelClose = errors.New("producer: consumer closed the channel ")
-var ErrSender = errors.New("producer: error send event: %s")
+var errUnlock = errors.New("producer: unlock error: %s")
+var errRemove = errors.New("producer: remove error: %s")
+var errBatchHandler = errors.New("producer: batch handler error: %s")
+var errChannelClose = errors.New("producer: consumer closed the channel ")
+var errSender = errors.New("producer: error send event: %s")
 
 type producer struct {
 	n       int
@@ -82,7 +82,7 @@ func (p *producer) Start(ctx context.Context) {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						fmt.Println(ErrChannelClose)
+						fmt.Println(errChannelClose)
 						return
 					}
 
@@ -119,13 +119,13 @@ func (p *producer) StartBatch(ctx context.Context) {
 				select {
 				case event, ok := <-p.events:
 					if !ok {
-						log.Println(ErrChannelClose)
+						log.Println(errChannelClose)
 						return
 					}
 
 					err := p.sender.Send(ctx, &event)
 					if err != nil {
-						log.Printf(ErrSender.Error(), err)
+						log.Printf(errSender.Error(), err)
 						updateChannel <- event.ID
 						continue
 					}
@@ -147,7 +147,7 @@ func (p *producer) processUpdate(eventIDs []uint64) {
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
-			log.Printf(ErrUnlock.Error(), err)
+			log.Printf(errUnlock.Error(), err)
 		}
 	})
 }
@@ -159,7 +159,7 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	p.workerPool.Submit(func() {
 		err := p.repo.Unlock(eventIDs)
 		if err != nil {
-			errChan <- fmt.Errorf(ErrUnlock.Error(), err)
+			errChan <- fmt.Errorf(errUnlock.Error(), err)
 			return
 		}
 
@@ -172,7 +172,7 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 func (p *producer) processClean(eventIDs []uint64) {
 	err := p.repo.Remove(eventIDs)
 	if err != nil {
-		log.Printf(ErrRemove.Error(), err)
+		log.Printf(errRemove.Error(), err)
 	}
 }
 
@@ -184,7 +184,7 @@ func (p *producer) processWaitClean(eventIDs []uint64) error {
 	p.workerPool.Submit(func() {
 		err := p.repo.Remove(eventIDs)
 		if err != nil {
-			errChan <- fmt.Errorf(ErrRemove.Error(), err)
+			errChan <- fmt.Errorf(errRemove.Error(), err)
 			return
 		}
 
@@ -218,7 +218,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 					if len(buffer) > 0 {
 						err := f(buffer)
 						if err != nil {
-							log.Printf(ErrBatchHandler.Error(), err)
+							log.Printf(errBatchHandler.Error(), err)
 						}
 					}
 
@@ -233,7 +233,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 					err := f(buffer)
 
 					if err != nil {
-						log.Printf(ErrBatchHandler.Error(), err)
+						log.Printf(errBatchHandler.Error(), err)
 						c <- id // вернём обратно, чтобы не потерять событие
 						continue
 					}
@@ -248,7 +248,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 				err := f(buffer)
 
 				if err != nil {
-					log.Printf(ErrBatchHandler.Error(), err)
+					log.Printf(errBatchHandler.Error(), err)
 					continue
 				}
 
@@ -258,7 +258,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 				if len(buffer) != 0 {
 					err := f(buffer)
 					if err != nil {
-						log.Printf(ErrBatchHandler.Error(), err)
+						log.Printf(errBatchHandler.Error(), err)
 					}
 				}
 

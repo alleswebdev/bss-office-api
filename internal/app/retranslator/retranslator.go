@@ -1,3 +1,4 @@
+// Package retranslator  предназначен для пересылки событий из репозитория в брокер сообщений
 package retranslator
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/gammazero/workerpool"
 )
 
+// Retranslator interface
 type Retranslator interface {
 	Start(ctx context.Context)
 	Close()
