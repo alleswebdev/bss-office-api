@@ -13,7 +13,7 @@ import (
 )
 
 const testBatchSize = uint64(10)
-const testConsumerCount = 10
+const testConsumerCount = 1
 const testEventBufferSize = 512
 
 type ConsumerFixture struct {
@@ -33,7 +33,7 @@ func setUp(t *testing.T) ConsumerFixture {
 	fixture.consumer = NewDbConsumer(
 		testConsumerCount,
 		testBatchSize,
-		time.Millisecond,
+		time.Millisecond*5,
 		fixture.repo,
 		fixture.events,
 	)

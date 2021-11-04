@@ -107,8 +107,8 @@ func (p *producer) StartBatch(ctx context.Context) {
 			defer p.wg.Done()
 
 			updateChannel := p.startBatchUpdater(ctx)
-			defer close(updateChannel)
 			removeChannel := p.startBatchCleaner(ctx)
+			defer close(updateChannel)
 			defer close(removeChannel)
 
 			for {
@@ -181,11 +181,13 @@ func (p *producer) startBatchUpdater(ctx context.Context) chan<- uint64 {
 			select {
 			case id, ok := <-c:
 				if !ok {
-					err := p.processWaitUpdate(buffer)
-					if err != nil {
-						log.Printf(UnlockErr.Error(), err)
+					if len(buffer) > 0 {
+						err := p.processWaitUpdate(buffer)
+						if err != nil {
+							log.Printf(UnlockErr.Error(), err)
+						}
 					}
-					ticker.Stop()
+
 					log.Println("update channel was closed")
 					return
 				}
@@ -243,6 +245,8 @@ func (p *producer) processClean(eventIDs []uint64) {
 // processWaitClean удаляет обработанные записи в репозитории и дожидается возврата ошибки
 func (p *producer) processWaitClean(eventIDs []uint64) error {
 	errChan := make(chan error)
+	defer close(errChan)
+
 	p.workerPool.Submit(func() {
 		err := p.repo.Remove(eventIDs)
 		if err != nil {
@@ -272,10 +276,13 @@ func (p *producer) startBatchCleaner(ctx context.Context) chan<- uint64 {
 			select {
 			case id, ok := <-c:
 				if !ok {
-					err := p.processWaitClean(buffer)
-					if err != nil {
-						log.Printf(RemoveErr.Error(), err)
+					if len(buffer) > 0 {
+						err := p.processWaitClean(buffer)
+						if err != nil {
+							log.Printf(RemoveErr.Error(), err)
+						}
 					}
+
 					ticker.Stop()
 					log.Println("cleaner channel was closed")
 					return

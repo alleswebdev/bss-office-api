@@ -3,7 +3,6 @@ package producer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/gammazero/workerpool"
 	"github.com/golang/mock/gomock"
 	"github.com/ozonmp/bss-office-api/internal/mocks"
@@ -246,42 +245,4 @@ func TestProducer_Batch_Start_Timeout(t *testing.T) {
 	wg.Wait()
 	assert.Len(t, fixture.events, 0)
 	cancel()
-}
-
-// проверим, что при ошибке в методе удаления репозитория
-// событие не потеряется и переотправится
-func TestProducer_Batch_Start_With_Remove_err(t *testing.T) {
-	t.Parallel()
-
-	fixture := setUp(t)
-	defer fixture.tearDown()
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
-	fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(nil)
-
-	fixture.repo.EXPECT().Remove(gomock.Any()).DoAndReturn(func(eventIDs []uint64) error {
-		defer wg.Done()
-		assert.Equal(t, []uint64{fixture.model.ID}, eventIDs)
-		return fmt.Errorf("test error in repo")
-	})
-
-	fixture.repo.EXPECT().Remove(gomock.Any()).DoAndReturn(func(eventIDs []uint64) error {
-		defer wg.Done()
-		assert.Equal(t, []uint64{fixture.model.ID}, eventIDs)
-		return nil
-	})
-
-	fixture.events <- fixture.model
-
-	fixture.producer.StartBatch(ctx)
-	defer fixture.producer.Close()
-
-	wg.Wait()
-	assert.Len(t, fixture.events, 0)
-	cancel()
-	fmt.Println("done")
 }
