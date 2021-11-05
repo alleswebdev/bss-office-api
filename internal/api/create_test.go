@@ -36,10 +36,15 @@ func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 	fixture := setUp(t)
 
 	testName := "Office 5"
+	testId := uint64(1)
 
-	fixture.repo.EXPECT().CreateOffice(gomock.Any(), model.Office{Name: testName})
-	_, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: testName})
+	fixture.repo.EXPECT().CreateOffice(gomock.Any(), model.Office{Name: testName}).DoAndReturn(func(ctx context.Context, office model.Office) (uint64, error) {
+		return testId, nil
+	})
 
+	res, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: testName})
+
+	assert.Equal(t, testId, res.GetOfficeId())
 	assert.NoError(t, err)
 }
 
@@ -59,7 +64,10 @@ func Test_officeAPI_CreateOfficeV1_Repo_Err(t *testing.T) {
 	_, err := fixture.apiServer.CreateOfficeV1(context.Background(),
 		&bss_office_api.CreateOfficeV1Request{Name: testName})
 
-	assert.Error(t, err, errTest)
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.Internal, actualStatus.Code())
+	assert.Error(t, errTest, actualStatus.Err())
 }
 
 func Test_officeAPI_CreateOfficeV1_Error_Validation_Empty_Name(t *testing.T) {

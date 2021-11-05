@@ -29,9 +29,12 @@ func Test_officeAPI_DescribeOfficeV1(t *testing.T) {
 		}, nil
 	})
 
-	_, err := fixture.apiServer.DescribeOfficeV1(context.Background(),
+	res, err := fixture.apiServer.DescribeOfficeV1(context.Background(),
 		&bss_office_api.DescribeOfficeV1Request{OfficeId: testOfficeID})
 
+	assert.Equal(t, res.GetValue().GetId(), testOfficeID)
+	assert.Equal(t, res.GetValue().GetName(), "test")
+	assert.Equal(t, res.GetValue().GetDescription(), "test")
 	assert.NoError(t, err)
 }
 
@@ -69,7 +72,10 @@ func Test_officeAPI_DescribeOfficeV1_Repo_Err(t *testing.T) {
 	_, err := fixture.apiServer.DescribeOfficeV1(context.Background(),
 		&bss_office_api.DescribeOfficeV1Request{OfficeId: testOfficeID})
 
-	assert.Error(t, err, errTest)
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.Internal, actualStatus.Code())
+	assert.Error(t, errTest, actualStatus.Err())
 }
 
 func Test_officeAPI_DescribeOfficeV1_With_Zero_ID(t *testing.T) {

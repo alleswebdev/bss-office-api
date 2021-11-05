@@ -47,8 +47,11 @@ func Test_officeAPI_RemoveOfficeV1_Repo_Err(t *testing.T) {
 	res, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
 		&bss_office_api.RemoveOfficeV1Request{OfficeId: testOfficeID})
 
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.Internal, actualStatus.Code())
+	assert.Error(t, errTest, actualStatus.Err())
 	assert.False(t, res.GetFound())
-	assert.Error(t, err, errTest)
 }
 
 func Test_officeAPI_RemoveOfficeV1_With_Zero_ID(t *testing.T) {
