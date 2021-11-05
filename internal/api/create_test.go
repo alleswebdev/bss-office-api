@@ -1,4 +1,4 @@
-package api //nolint:dupl
+package api
 
 import (
 	"context"
