@@ -13,7 +13,6 @@ _sym_db = _symbol_database.Default()
 
 from validate import validate_pb2 as validate_dot_validate__pb2
 from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
-from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -22,9 +21,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'ZBgithub.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_api',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n-ozonmp/bss_office_api/v1/bss_office_api.proto\x12\x18ozonmp.bss_office_api.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"b\n\x06Office\x12\x17\n\x02id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x02id\x12\x1d\n\x04name\x18\x02 \x01(\tB\t\xfa\x42\x06r\x04\x10\x02\x18\x64R\x04name\x12 \n\x0b\x64\x65scription\x18\x03 \x01(\tR\x0b\x64\x65scription\"?\n\x17\x44\x65scribeOfficeV1Request\x12$\n\toffice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x08officeId\"R\n\x18\x44\x65scribeOfficeV1Response\x12\x36\n\x05value\x18\x01 \x01(\x0b\x32 .ozonmp.bss_office_api.v1.OfficeR\x05value\"X\n\x15\x43reateOfficeV1Request\x12\x1d\n\x04name\x18\x01 \x01(\tB\t\xfa\x42\x06r\x04\x10\x02\x18\x64R\x04name\x12 \n\x0b\x64\x65scription\x18\x02 \x01(\tR\x0b\x64\x65scription\">\n\x16\x43reateOfficeV1Response\x12$\n\toffice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x08officeId\"O\n\x15ListOfficesV1Response\x12\x36\n\x05items\x18\x01 \x03(\x0b\x32 .ozonmp.bss_office_api.v1.OfficeR\x05items\"=\n\x15RemoveOfficeV1Request\x12$\n\toffice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x08officeId\".\n\x16RemoveOfficeV1Response\x12\x14\n\x05\x66ound\x18\x01 \x01(\x08R\x05\x66ound2\xd7\x04\n\x13\x42ssOfficeApiService\x12\x9d\x01\n\x10\x44\x65scribeOfficeV1\x12\x31.ozonmp.bss_office_api.v1.DescribeOfficeV1Request\x1a\x32.ozonmp.bss_office_api.v1.DescribeOfficeV1Response\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/office/{office_id}\x12\x8e\x01\n\x0e\x43reateOfficeV1\x12/.ozonmp.bss_office_api.v1.CreateOfficeV1Request\x1a\x30.ozonmp.bss_office_api.v1.CreateOfficeV1Response\"\x19\x82\xd3\xe4\x93\x02\x13\"\x0e/api/v1/office:\x01*\x12\x97\x01\n\x0eRemoveOfficeV1\x12/.ozonmp.bss_office_api.v1.RemoveOfficeV1Request\x1a\x30.ozonmp.bss_office_api.v1.RemoveOfficeV1Response\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/api/v1/office/{office_id}\x12u\n\rListOfficesV1\x12\x16.google.protobuf.Empty\x1a/.ozonmp.bss_office_api.v1.ListOfficesV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/office/listBDZBgithub.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_apib\x06proto3'
+  serialized_pb=b'\n-ozonmp/bss_office_api/v1/bss_office_api.proto\x12\x18ozonmp.bss_office_api.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"b\n\x06Office\x12\x17\n\x02id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x02id\x12\x1d\n\x04name\x18\x02 \x01(\tB\t\xfa\x42\x06r\x04\x10\x02\x18\x64R\x04name\x12 \n\x0b\x64\x65scription\x18\x03 \x01(\tR\x0b\x64\x65scription\"?\n\x17\x44\x65scribeOfficeV1Request\x12$\n\toffice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x08officeId\"R\n\x18\x44\x65scribeOfficeV1Response\x12\x36\n\x05value\x18\x01 \x01(\x0b\x32 .ozonmp.bss_office_api.v1.OfficeR\x05value\"X\n\x15\x43reateOfficeV1Request\x12\x1d\n\x04name\x18\x01 \x01(\tB\t\xfa\x42\x06r\x04\x10\x02\x18\x64R\x04name\x12 \n\x0b\x64\x65scription\x18\x02 \x01(\tR\x0b\x64\x65scription\">\n\x16\x43reateOfficeV1Response\x12$\n\toffice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x08officeId\"\x16\n\x14ListOfficesV1Request\"O\n\x15ListOfficesV1Response\x12\x36\n\x05items\x18\x01 \x03(\x0b\x32 .ozonmp.bss_office_api.v1.OfficeR\x05items\"=\n\x15RemoveOfficeV1Request\x12$\n\toffice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\x08officeId\".\n\x16RemoveOfficeV1Response\x12\x14\n\x05\x66ound\x18\x01 \x01(\x08R\x05\x66ound2\xf0\x04\n\x13\x42ssOfficeApiService\x12\x9d\x01\n\x10\x44\x65scribeOfficeV1\x12\x31.ozonmp.bss_office_api.v1.DescribeOfficeV1Request\x1a\x32.ozonmp.bss_office_api.v1.DescribeOfficeV1Response\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/office/{office_id}\x12\x8e\x01\n\x0e\x43reateOfficeV1\x12/.ozonmp.bss_office_api.v1.CreateOfficeV1Request\x1a\x30.ozonmp.bss_office_api.v1.CreateOfficeV1Response\"\x19\x82\xd3\xe4\x93\x02\x13\"\x0e/api/v1/office:\x01*\x12\x97\x01\n\x0eRemoveOfficeV1\x12/.ozonmp.bss_office_api.v1.RemoveOfficeV1Request\x1a\x30.ozonmp.bss_office_api.v1.RemoveOfficeV1Response\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/api/v1/office/{office_id}\x12\x8d\x01\n\rListOfficesV1\x12..ozonmp.bss_office_api.v1.ListOfficesV1Request\x1a/.ozonmp.bss_office_api.v1.ListOfficesV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/office/listBDZBgithub.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_apib\x06proto3'
   ,
-  dependencies=[validate_dot_validate__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
+  dependencies=[validate_dot_validate__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,])
 
 
 
@@ -70,8 +69,8 @@ _OFFICE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=159,
-  serialized_end=257,
+  serialized_start=130,
+  serialized_end=228,
 )
 
 
@@ -102,8 +101,8 @@ _DESCRIBEOFFICEV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=259,
-  serialized_end=322,
+  serialized_start=230,
+  serialized_end=293,
 )
 
 
@@ -134,8 +133,8 @@ _DESCRIBEOFFICEV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=324,
-  serialized_end=406,
+  serialized_start=295,
+  serialized_end=377,
 )
 
 
@@ -173,8 +172,8 @@ _CREATEOFFICEV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=408,
-  serialized_end=496,
+  serialized_start=379,
+  serialized_end=467,
 )
 
 
@@ -205,8 +204,33 @@ _CREATEOFFICEV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=498,
-  serialized_end=560,
+  serialized_start=469,
+  serialized_end=531,
+)
+
+
+_LISTOFFICESV1REQUEST = _descriptor.Descriptor(
+  name='ListOfficesV1Request',
+  full_name='ozonmp.bss_office_api.v1.ListOfficesV1Request',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=533,
+  serialized_end=555,
 )
 
 
@@ -237,8 +261,8 @@ _LISTOFFICESV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=562,
-  serialized_end=641,
+  serialized_start=557,
+  serialized_end=636,
 )
 
 
@@ -269,8 +293,8 @@ _REMOVEOFFICEV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=643,
-  serialized_end=704,
+  serialized_start=638,
+  serialized_end=699,
 )
 
 
@@ -301,8 +325,8 @@ _REMOVEOFFICEV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=706,
-  serialized_end=752,
+  serialized_start=701,
+  serialized_end=747,
 )
 
 _DESCRIBEOFFICEV1RESPONSE.fields_by_name['value'].message_type = _OFFICE
@@ -312,6 +336,7 @@ DESCRIPTOR.message_types_by_name['DescribeOfficeV1Request'] = _DESCRIBEOFFICEV1R
 DESCRIPTOR.message_types_by_name['DescribeOfficeV1Response'] = _DESCRIBEOFFICEV1RESPONSE
 DESCRIPTOR.message_types_by_name['CreateOfficeV1Request'] = _CREATEOFFICEV1REQUEST
 DESCRIPTOR.message_types_by_name['CreateOfficeV1Response'] = _CREATEOFFICEV1RESPONSE
+DESCRIPTOR.message_types_by_name['ListOfficesV1Request'] = _LISTOFFICESV1REQUEST
 DESCRIPTOR.message_types_by_name['ListOfficesV1Response'] = _LISTOFFICESV1RESPONSE
 DESCRIPTOR.message_types_by_name['RemoveOfficeV1Request'] = _REMOVEOFFICEV1REQUEST
 DESCRIPTOR.message_types_by_name['RemoveOfficeV1Response'] = _REMOVEOFFICEV1RESPONSE
@@ -352,6 +377,13 @@ CreateOfficeV1Response = _reflection.GeneratedProtocolMessageType('CreateOfficeV
   })
 _sym_db.RegisterMessage(CreateOfficeV1Response)
 
+ListOfficesV1Request = _reflection.GeneratedProtocolMessageType('ListOfficesV1Request', (_message.Message,), {
+  'DESCRIPTOR' : _LISTOFFICESV1REQUEST,
+  '__module__' : 'ozonmp.bss_office_api.v1.bss_office_api_pb2'
+  # @@protoc_insertion_point(class_scope:ozonmp.bss_office_api.v1.ListOfficesV1Request)
+  })
+_sym_db.RegisterMessage(ListOfficesV1Request)
+
 ListOfficesV1Response = _reflection.GeneratedProtocolMessageType('ListOfficesV1Response', (_message.Message,), {
   'DESCRIPTOR' : _LISTOFFICESV1RESPONSE,
   '__module__' : 'ozonmp.bss_office_api.v1.bss_office_api_pb2'
@@ -389,8 +421,8 @@ _BSSOFFICEAPISERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=755,
-  serialized_end=1354,
+  serialized_start=750,
+  serialized_end=1374,
   methods=[
   _descriptor.MethodDescriptor(
     name='DescribeOfficeV1',
@@ -427,7 +459,7 @@ _BSSOFFICEAPISERVICE = _descriptor.ServiceDescriptor(
     full_name='ozonmp.bss_office_api.v1.BssOfficeApiService.ListOfficesV1',
     index=3,
     containing_service=None,
-    input_type=google_dot_protobuf_dot_empty__pb2._EMPTY,
+    input_type=_LISTOFFICESV1REQUEST,
     output_type=_LISTOFFICESV1RESPONSE,
     serialized_options=b'\202\323\344\223\002\025\022\023/api/v1/office/list',
     create_key=_descriptor._internal_create_key,

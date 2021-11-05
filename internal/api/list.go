@@ -2,17 +2,15 @@ package api
 
 import (
 	"context"
+	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
-
-	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 )
 
 func (o *officeAPI) ListOfficesV1(
 	ctx context.Context,
-	_ *emptypb.Empty,
+	_ *pb.ListOfficesV1Request,
 ) (*pb.ListOfficesV1Response, error) {
 	items, err := o.repo.ListOffices(ctx)
 	if err != nil {
