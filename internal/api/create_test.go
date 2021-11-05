@@ -36,15 +36,15 @@ func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 	fixture := setUp(t)
 
 	testName := "Office 5"
-	testId := uint64(1)
+	testID := uint64(1)
 
 	fixture.repo.EXPECT().CreateOffice(gomock.Any(), model.Office{Name: testName}).DoAndReturn(func(ctx context.Context, office model.Office) (uint64, error) {
-		return testId, nil
+		return testID, nil
 	})
 
 	res, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: testName})
 
-	assert.Equal(t, testId, res.GetOfficeId())
+	assert.Equal(t, testID, res.GetOfficeId())
 	assert.NoError(t, err)
 }
 
