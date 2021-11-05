@@ -43,7 +43,7 @@ database:
 
 kafka:
   capacity: 512
-  topic: "omp-template-events"
+  topic: "bss-office-events"
   groupId: "bss-office-api"
   brokers:
     - "kafka:9092"

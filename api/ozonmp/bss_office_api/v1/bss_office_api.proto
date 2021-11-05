@@ -4,30 +4,74 @@ package ozonmp.bss_office_api.v1;
 
 import "validate/validate.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_api";
 
-// OmpTemplateApiService - Service for working with templates
-service OmpTemplateApiService {
-  // DescribeTemplateV1 - Describe a template
-  rpc DescribeTemplateV1(DescribeTemplateV1Request) returns (DescribeTemplateV1Response) {
+// BssOfficeApiService - Service for working with offices
+service BssOfficeApiService {
+  // DescribeOfficeV1 - Describe a office
+  rpc DescribeOfficeV1(DescribeOfficeV1Request) returns (DescribeOfficeV1Response) {
     option (google.api.http) = {
-      get: "/v1/templates/{template_id}"
+      get: "/api/v1/office/{office_id}"
+    };
+  }
+  // CreateOfficeV1 - Create new office
+  rpc CreateOfficeV1(CreateOfficeV1Request) returns (CreateOfficeV1Response) {
+    option (google.api.http) = {
+      post: "/api/v1/office",
+      body: "*"
+    };
+  }
+
+  // RemoveOfficeV1 - delete the office by id
+  rpc RemoveOfficeV1(RemoveOfficeV1Request) returns (RemoveOfficeV1Response) {
+    option (google.api.http) = {
+      delete: "/api/v1/office/{office_id}"
+    };
+  }
+
+  // ListOfficeV1 - list of offices
+  rpc ListOfficesV1(ListOfficesV1Request) returns (ListOfficesV1Response) {
+    option (google.api.http) = {
+      get: "/api/v1/office/list"
     };
   }
 }
 
-message Template {
-  uint64 id  = 1;
-  uint64 foo = 2;
-  google.protobuf.Timestamp created = 3;
+message Office {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  string name = 2  [(validate.rules).string = {min_len: 2, max_len: 100}];
+  string description = 3;
 }
 
-message DescribeTemplateV1Request {
-  uint64 template_id = 1 [(validate.rules).uint64.gt = 0];
+message DescribeOfficeV1Request {
+  uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
 }
 
-message DescribeTemplateV1Response {
-  Template value = 1;
+message DescribeOfficeV1Response {
+  Office value = 1;
+}
+
+message CreateOfficeV1Request {
+  string name = 1  [(validate.rules).string = {min_len: 2, max_len: 100}];
+  string description = 2;
+}
+
+message CreateOfficeV1Response {
+  uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message ListOfficesV1Request {
+}
+
+message ListOfficesV1Response {
+  repeated Office items = 1;
+}
+
+message RemoveOfficeV1Request {
+  uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message RemoveOfficeV1Response {
+  bool found = 1;
 }

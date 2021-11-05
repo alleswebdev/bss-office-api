@@ -4,6 +4,7 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/model"
 )
 
+// EventRepo interface
 type EventRepo interface {
 	Lock(n uint64) ([]model.OfficeEvent, error)
 	Unlock(eventIDs []uint64) error

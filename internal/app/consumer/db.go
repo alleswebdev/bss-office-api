@@ -10,6 +10,7 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/model"
 )
 
+// Consumer interface
 type Consumer interface {
 	Start(ctx context.Context)
 	Close()
@@ -27,6 +28,7 @@ type consumer struct {
 	wg *sync.WaitGroup
 }
 
+// NewDbConsumer create a new consumer
 func NewDbConsumer(
 	n int,
 	batchSize uint64,
