@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-const errCreateValidation = "invalid CreateOfficeV1Request.Name: value length must be between 2 and 100 runes, inclusive"
+const errCreateNameValidation = "invalid CreateOfficeV1Request.Name: value length must be between 2 and 100 runes, inclusive"
 
 type APIFixture struct {
 	repo      *mocks.MockRepo
@@ -71,7 +71,7 @@ func Test_officeAPI_CreateOfficeV1_Error_Validation_Empty_Name(t *testing.T) {
 	actualStatus, _ := status.FromError(err)
 
 	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
-	assert.Equal(t, errCreateValidation, actualStatus.Message())
+	assert.Equal(t, errCreateNameValidation, actualStatus.Message())
 }
 
 func Test_officeAPI_CreateOfficeV1_Error_Validation_Name_Min_Len(t *testing.T) {
@@ -83,7 +83,7 @@ func Test_officeAPI_CreateOfficeV1_Error_Validation_Name_Min_Len(t *testing.T) {
 	actualStatus, _ := status.FromError(err)
 
 	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
-	assert.Equal(t, errCreateValidation, actualStatus.Message())
+	assert.Equal(t, errCreateNameValidation, actualStatus.Message())
 }
 
 func Test_officeAPI_CreateOfficeV1_Error_Validation_Name_Max_Len(t *testing.T) {
@@ -95,5 +95,5 @@ func Test_officeAPI_CreateOfficeV1_Error_Validation_Name_Max_Len(t *testing.T) {
 	actualStatus, _ := status.FromError(err)
 
 	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
-	assert.Equal(t, errCreateValidation, actualStatus.Message())
+	assert.Equal(t, errCreateNameValidation, actualStatus.Message())
 }

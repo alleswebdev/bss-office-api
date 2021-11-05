@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-const errRemoveOfficeIdValidation = "invalid RemoveOfficeV1Request.OfficeId: value must be greater than 0"
+const errRemoveOfficeIDValidation = "invalid RemoveOfficeV1Request.OfficeId: value must be greater than 0"
 
 func Test_officeAPI_RemoveOfficeV1(t *testing.T) {
 	t.Parallel()
@@ -61,7 +61,7 @@ func Test_officeAPI_RemoveOfficeV1_With_Zero_ID(t *testing.T) {
 	actualStatus, _ := status.FromError(err)
 
 	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
-	assert.Equal(t, errRemoveOfficeIdValidation, actualStatus.Message())
+	assert.Equal(t, errRemoveOfficeIDValidation, actualStatus.Message())
 }
 
 func Test_officeAPI_RemoveOfficeV1_Without_ID(t *testing.T) {
@@ -73,5 +73,5 @@ func Test_officeAPI_RemoveOfficeV1_Without_ID(t *testing.T) {
 	actualStatus, _ := status.FromError(err)
 
 	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
-	assert.Equal(t, errRemoveOfficeIdValidation, actualStatus.Message())
+	assert.Equal(t, errRemoveOfficeIDValidation, actualStatus.Message())
 }
