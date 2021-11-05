@@ -37,6 +37,6 @@ func (o *officeAPI) DescribeOfficeV1(
 	log.Debug().Msg("DescribeOfficeV1 - success")
 
 	return &pb.DescribeOfficeV1Response{
-		Value: convertOfficeToPb(office),
+		Value: convertBssOfficeToPb(office),
 	}, nil
 }

@@ -4,6 +4,7 @@ package ozonmp.bss_office_api.v1;
 
 import "validate/validate.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "github.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_api";
 
@@ -31,7 +32,7 @@ service BssOfficeApiService {
   }
 
   // ListOfficeV1 - list of offices
-  rpc ListOfficesV1(ListOfficesV1Request) returns (ListOfficesV1Response) {
+  rpc ListOfficesV1(google.protobuf.Empty) returns (ListOfficesV1Response) {
     option (google.api.http) = {
       get: "/api/v1/office/list"
     };
@@ -59,9 +60,6 @@ message CreateOfficeV1Request {
 
 message CreateOfficeV1Response {
   uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
-}
-
-message ListOfficesV1Request {
 }
 
 message ListOfficesV1Response {

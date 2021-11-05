@@ -5,7 +5,7 @@ import (
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 )
 
-func convertOfficeToPb(office *model.Office) *pb.Office {
+func convertBssOfficeToPb(office *model.Office) *pb.Office {
 	return &pb.Office{
 		Id:          office.ID,
 		Name:        office.Name,

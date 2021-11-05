@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -170,7 +171,7 @@ func local_request_BssOfficeApiService_RemoveOfficeV1_0(ctx context.Context, mar
 }
 
 func request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, marshaler runtime.Marshaler, client BssOfficeApiServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListOfficesV1Request
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.ListOfficesV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -179,7 +180,7 @@ func request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, marshaler 
 }
 
 func local_request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, marshaler runtime.Marshaler, server BssOfficeApiServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListOfficesV1Request
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.ListOfficesV1(ctx, &protoReq)

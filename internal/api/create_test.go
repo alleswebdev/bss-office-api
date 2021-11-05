@@ -2,15 +2,18 @@ package api //nolint:dupl
 
 import (
 	"context"
+	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/ozonmp/bss-office-api/internal/mocks"
+	"github.com/ozonmp/bss-office-api/internal/model"
 	bss_office_api "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"testing"
-	"time"
 )
+
+const errCreateValidation = "invalid CreateOfficeV1Request.Name: value length must be between 2 and 100 runes, inclusive"
 
 type APIFixture struct {
 	repo      *mocks.MockRepo
@@ -28,47 +31,69 @@ func setUp(t *testing.T) APIFixture {
 	return fixture
 }
 
-//nolint:dupl
 func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 	t.Parallel()
+	fixture := setUp(t)
 
-	tests := []struct {
-		name     string
-		request  *bss_office_api.CreateOfficeV1Request
-		wantCode codes.Code
-		wantMsg  string
-	}{
-		{
-			name:     "with empty name",
-			request:  &bss_office_api.CreateOfficeV1Request{Name: ""},
-			wantCode: codes.InvalidArgument,
-			wantMsg:  "invalid CreateOfficeV1Request.Name: value length must be between 2 and 100 runes, inclusive",
-		},
-		{
-			name:     "with one rune name",
-			request:  &bss_office_api.CreateOfficeV1Request{Name: "a"},
-			wantCode: codes.InvalidArgument,
-			wantMsg:  "invalid CreateOfficeV1Request.Name: value length must be between 2 and 100 runes, inclusive",
-		},
-		{
-			name:     "with 101 rune name",
-			request:  &bss_office_api.CreateOfficeV1Request{Name: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean mass"},
-			wantCode: codes.InvalidArgument,
-			wantMsg:  "invalid CreateOfficeV1Request.Name: value length must be between 2 and 100 runes, inclusive",
-		},
-	}
+	testName := "Office 5"
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fixture := setUp(t)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			defer cancel()
-			_, err := fixture.apiServer.CreateOfficeV1(ctx, tt.request)
+	fixture.repo.EXPECT().CreateOffice(gomock.Any(), model.Office{Name: testName})
+	_, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: testName})
 
-			actualStatus, _ := status.FromError(err)
+	assert.NoError(t, err)
+}
 
-			assert.Equal(t, tt.wantCode, actualStatus.Code())
-			assert.Equal(t, tt.wantMsg, actualStatus.Message())
+func Test_officeAPI_CreateOfficeV1_Repo_Err(t *testing.T) {
+	t.Parallel()
+
+	fixture := setUp(t)
+
+	testName := "test office"
+	errTest := errors.New("test repo err")
+
+	fixture.repo.EXPECT().CreateOffice(gomock.Any(), model.Office{Name: testName}).
+		DoAndReturn(func(ctx context.Context, office model.Office) (*model.Office, error) {
+			return nil, errTest
 		})
-	}
+
+	_, err := fixture.apiServer.CreateOfficeV1(context.Background(),
+		&bss_office_api.CreateOfficeV1Request{Name: testName})
+
+	assert.Error(t, err, errTest)
+}
+
+func Test_officeAPI_CreateOfficeV1_Error_Validation_Empty_Name(t *testing.T) {
+	t.Parallel()
+	fixture := setUp(t)
+
+	_, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: ""})
+
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
+	assert.Equal(t, errCreateValidation, actualStatus.Message())
+}
+
+func Test_officeAPI_CreateOfficeV1_Error_Validation_Name_Min_Len(t *testing.T) {
+	t.Parallel()
+	fixture := setUp(t)
+
+	_, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: "a"})
+
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
+	assert.Equal(t, errCreateValidation, actualStatus.Message())
+}
+
+func Test_officeAPI_CreateOfficeV1_Error_Validation_Name_Max_Len(t *testing.T) {
+	t.Parallel()
+	fixture := setUp(t)
+
+	_, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean mass"})
+
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
+	assert.Equal(t, errCreateValidation, actualStatus.Message())
 }

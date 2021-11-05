@@ -5,13 +5,14 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 )
 
 func (o *officeAPI) ListOfficesV1(
 	ctx context.Context,
-	req *pb.ListOfficesV1Request,
+	_ *emptypb.Empty,
 ) (*pb.ListOfficesV1Response, error) {
 	items, err := o.repo.ListOffices(ctx)
 	if err != nil {
@@ -24,7 +25,7 @@ func (o *officeAPI) ListOfficesV1(
 	pbItems := make([]*pb.Office, 0, len(items))
 
 	for _, item := range items {
-		pbItems = append(pbItems, convertOfficeToPb(item))
+		pbItems = append(pbItems, convertBssOfficeToPb(item))
 	}
 
 	return &pb.ListOfficesV1Response{

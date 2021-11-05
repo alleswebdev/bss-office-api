@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,7 +26,7 @@ type BssOfficeApiServiceClient interface {
 	// RemoveOfficeV1 - delete the office by id
 	RemoveOfficeV1(ctx context.Context, in *RemoveOfficeV1Request, opts ...grpc.CallOption) (*RemoveOfficeV1Response, error)
 	// ListOfficeV1 - list of offices
-	ListOfficesV1(ctx context.Context, in *ListOfficesV1Request, opts ...grpc.CallOption) (*ListOfficesV1Response, error)
+	ListOfficesV1(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListOfficesV1Response, error)
 }
 
 type bssOfficeApiServiceClient struct {
@@ -63,7 +64,7 @@ func (c *bssOfficeApiServiceClient) RemoveOfficeV1(ctx context.Context, in *Remo
 	return out, nil
 }
 
-func (c *bssOfficeApiServiceClient) ListOfficesV1(ctx context.Context, in *ListOfficesV1Request, opts ...grpc.CallOption) (*ListOfficesV1Response, error) {
+func (c *bssOfficeApiServiceClient) ListOfficesV1(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListOfficesV1Response, error) {
 	out := new(ListOfficesV1Response)
 	err := c.cc.Invoke(ctx, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", in, out, opts...)
 	if err != nil {
@@ -83,7 +84,7 @@ type BssOfficeApiServiceServer interface {
 	// RemoveOfficeV1 - delete the office by id
 	RemoveOfficeV1(context.Context, *RemoveOfficeV1Request) (*RemoveOfficeV1Response, error)
 	// ListOfficeV1 - list of offices
-	ListOfficesV1(context.Context, *ListOfficesV1Request) (*ListOfficesV1Response, error)
+	ListOfficesV1(context.Context, *emptypb.Empty) (*ListOfficesV1Response, error)
 	mustEmbedUnimplementedBssOfficeApiServiceServer()
 }
 
@@ -100,7 +101,7 @@ func (UnimplementedBssOfficeApiServiceServer) CreateOfficeV1(context.Context, *C
 func (UnimplementedBssOfficeApiServiceServer) RemoveOfficeV1(context.Context, *RemoveOfficeV1Request) (*RemoveOfficeV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOfficeV1 not implemented")
 }
-func (UnimplementedBssOfficeApiServiceServer) ListOfficesV1(context.Context, *ListOfficesV1Request) (*ListOfficesV1Response, error) {
+func (UnimplementedBssOfficeApiServiceServer) ListOfficesV1(context.Context, *emptypb.Empty) (*ListOfficesV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOfficesV1 not implemented")
 }
 func (UnimplementedBssOfficeApiServiceServer) mustEmbedUnimplementedBssOfficeApiServiceServer() {}
@@ -171,7 +172,7 @@ func _BssOfficeApiService_RemoveOfficeV1_Handler(srv interface{}, ctx context.Co
 }
 
 func _BssOfficeApiService_ListOfficesV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListOfficesV1Request)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -183,7 +184,7 @@ func _BssOfficeApiService_ListOfficesV1_Handler(srv interface{}, ctx context.Con
 		FullMethod: "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BssOfficeApiServiceServer).ListOfficesV1(ctx, req.(*ListOfficesV1Request))
+		return srv.(BssOfficeApiServiceServer).ListOfficesV1(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

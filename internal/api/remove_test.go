@@ -1,51 +1,77 @@
-package api //nolint:dupl
+package api
 
 import (
 	"context"
+	"errors"
+	"github.com/golang/mock/gomock"
 	bss_office_api "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"testing"
-	"time"
 )
+
+const errRemoveOfficeIdValidation = "invalid RemoveOfficeV1Request.OfficeId: value must be greater than 0"
 
 func Test_officeAPI_RemoveOfficeV1(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name     string
-		request  *bss_office_api.RemoveOfficeV1Request
-		wantCode codes.Code
-		wantMsg  string
-	}{
-		{
-			name: "with zero id",
-			request: &bss_office_api.RemoveOfficeV1Request{
-				OfficeId: 0,
-			},
-			wantCode: codes.InvalidArgument,
-			wantMsg:  "invalid RemoveOfficeV1Request.OfficeId: value must be greater than 0",
-		},
-		{
-			name:     "with without id",
-			request:  &bss_office_api.RemoveOfficeV1Request{},
-			wantCode: codes.InvalidArgument,
-			wantMsg:  "invalid RemoveOfficeV1Request.OfficeId: value must be greater than 0",
-		},
-	}
+	fixture := setUp(t)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fixture := setUp(t)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			defer cancel()
-			_, err := fixture.apiServer.RemoveOfficeV1(ctx, tt.request)
+	testOfficeID := uint64(1)
 
-			actualStatus, _ := status.FromError(err)
+	fixture.repo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID).DoAndReturn(func(ctx context.Context, officeID uint64) (bool, error) {
+		return true, nil
+	})
 
-			assert.Equal(t, tt.wantCode, actualStatus.Code())
-			assert.Equal(t, tt.wantMsg, actualStatus.Message())
+	res, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
+		&bss_office_api.RemoveOfficeV1Request{OfficeId: testOfficeID})
+
+	assert.True(t, res.GetFound())
+	assert.NoError(t, err)
+}
+
+func Test_officeAPI_RemoveOfficeV1_Repo_Err(t *testing.T) {
+	t.Parallel()
+
+	fixture := setUp(t)
+
+	testOfficeID := uint64(1)
+
+	errTest := errors.New("test repo err")
+	fixture.repo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID).
+		DoAndReturn(func(ctx context.Context, officeID uint64) (bool, error) {
+			return false, errTest
 		})
-	}
+
+	res, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
+		&bss_office_api.RemoveOfficeV1Request{OfficeId: testOfficeID})
+
+	assert.False(t, res.GetFound())
+	assert.Error(t, err, errTest)
+}
+
+func Test_officeAPI_RemoveOfficeV1_With_Zero_ID(t *testing.T) {
+	t.Parallel()
+
+	fixture := setUp(t)
+	_, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
+		&bss_office_api.RemoveOfficeV1Request{OfficeId: 0})
+
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
+	assert.Equal(t, errRemoveOfficeIdValidation, actualStatus.Message())
+}
+
+func Test_officeAPI_RemoveOfficeV1_Without_ID(t *testing.T) {
+	t.Parallel()
+
+	fixture := setUp(t)
+	_, err := fixture.apiServer.RemoveOfficeV1(context.Background(), &bss_office_api.RemoveOfficeV1Request{})
+
+	actualStatus, _ := status.FromError(err)
+
+	assert.Equal(t, codes.InvalidArgument, actualStatus.Code())
+	assert.Equal(t, errRemoveOfficeIdValidation, actualStatus.Message())
 }

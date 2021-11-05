@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 import validate.validate_pb2
 import google.api.annotations_pb2
+import google.protobuf.empty_pb2
 import ozonmp.bss_office_api.v1.bss_office_api_pb2
 
 
@@ -29,7 +30,7 @@ class BssOfficeApiServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def ListOfficesV1(self, stream: 'grpclib.server.Stream[ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Request, ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response]') -> None:
+    async def ListOfficesV1(self, stream: 'grpclib.server.Stream[google.protobuf.empty_pb2.Empty, ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -55,7 +56,7 @@ class BssOfficeApiServiceBase(abc.ABC):
             '/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1': grpclib.const.Handler(
                 self.ListOfficesV1,
                 grpclib.const.Cardinality.UNARY_UNARY,
-                ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Request,
+                google.protobuf.empty_pb2.Empty,
                 ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response,
             ),
         }
@@ -85,6 +86,6 @@ class BssOfficeApiServiceStub:
         self.ListOfficesV1 = grpclib.client.UnaryUnaryMethod(
             channel,
             '/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1',
-            ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Request,
+            google.protobuf.empty_pb2.Empty,
             ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response,
         )
