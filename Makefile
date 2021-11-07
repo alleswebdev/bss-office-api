@@ -16,6 +16,8 @@ OS_ARCH=$(shell uname -m)
 GO_BIN=$(shell go env GOPATH)/bin
 BUF_EXE=$(GO_BIN)/buf$(shell go env GOEXE)
 
+PG_DSN="user=docker password=docker host=localhost port=5432 database=bss_office_api sslmode=disable"
+
 ifeq ("NT", "$(findstring NT,$(OS_NAME))")
 OS_NAME=Windows
 endif
@@ -95,3 +97,18 @@ build-go: generate-go .build
 		" \
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
 
+
+goose-up:
+	goose -dir migrations \
+      postgres $(PG_DSN) \
+      up
+
+goose-status:
+	goose -dir migrations \
+      postgres $(PG_DSN) \
+      status
+
+goose-down:
+	goose -dir migrations \
+      postgres $(PG_DSN) \
+      down

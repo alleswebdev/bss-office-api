@@ -10,10 +10,10 @@ import (
 
 // Repo is DAO for Office
 type Repo interface {
-	DescribeOffice(ctx context.Context, templateID uint64) (*model.Office, error)
+	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
 	CreateOffice(ctx context.Context, office model.Office) (uint64, error)
 	RemoveOffice(ctx context.Context, officeID uint64) (bool, error)
-	ListOffices(ctx context.Context) ([]*model.Office, error)
+	ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error)
 }
 
 type repo struct {
@@ -48,7 +48,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64) (bool, error) 
 }
 
 // ListOffices - return all offices
-func (r *repo) ListOffices(ctx context.Context) ([]*model.Office, error) {
+func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 	log.Debug().Msg("ListOffices")
 
 	return []*model.Office{}, nil

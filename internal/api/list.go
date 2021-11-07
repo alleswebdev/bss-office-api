@@ -12,7 +12,7 @@ func (o *officeAPI) ListOfficesV1(
 	ctx context.Context,
 	_ *pb.ListOfficesV1Request,
 ) (*pb.ListOfficesV1Response, error) {
-	items, err := o.repo.ListOffices(ctx)
+	items, err := o.repo.ListOffices(ctx, 0, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("ListOfficesV1 -- failed")
 
