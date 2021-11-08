@@ -444,6 +444,15 @@ func (m *ListOfficesV1Request) Validate() error {
 		return nil
 	}
 
+	if val := m.GetLimit(); val <= 0 || val >= 100 {
+		return ListOfficesV1RequestValidationError{
+			field:  "Limit",
+			reason: "value must be inside range (0, 100)",
+		}
+	}
+
+	// no validation rules for Offset
+
 	return nil
 }
 

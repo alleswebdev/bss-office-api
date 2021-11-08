@@ -6,10 +6,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/database"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
-
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/pkg/errors"
 )
 
 const tableName = "offices"
@@ -69,7 +67,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, e
 		return 0, err
 	}
 
-	var id int64
+	var id uint64
 	if rows.Next() {
 		err = rows.Scan(&id)
 
@@ -78,11 +76,9 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, e
 		}
 
 		return id, nil
-	} else {
-		return 0, sql.ErrNoRows
 	}
 
-	return 0, nil
+	return 0, sql.ErrNoRows
 }
 
 //RemoveOffice - remove office by id
@@ -121,7 +117,25 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64) (bool, error) 
 
 // ListOffices - return all offices
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
-	log.Debug().Msg("ListOffices")
+	sb := database.StatementBuilder.
+		Select("id", "name", "description", "removed", "created", "updated").
+		From(tableName).
+		Where(sq.NotEq{"removed": "true"}).
+		Limit(limit).Offset(offset)
 
-	return []*model.Office{}, nil
+	sql, args, err := sb.ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var offices []*model.Office
+
+	err = r.db.SelectContext(ctx, &offices, sql, args...)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "db.SelectContext()")
+	}
+
+	return offices, nil
 }

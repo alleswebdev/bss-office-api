@@ -10,9 +10,15 @@ import (
 
 func (o *officeAPI) ListOfficesV1(
 	ctx context.Context,
-	_ *pb.ListOfficesV1Request,
+	req *pb.ListOfficesV1Request,
 ) (*pb.ListOfficesV1Response, error) {
-	items, err := o.repo.ListOffices(ctx, 0, 0)
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("CreateOfficeV1 - invalid argument")
+
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	items, err := o.repo.ListOffices(ctx, req.GetLimit(), req.GetOffset())
 	if err != nil {
 		log.Error().Err(err).Msg("ListOfficesV1 -- failed")
 

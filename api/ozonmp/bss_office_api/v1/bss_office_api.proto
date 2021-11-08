@@ -34,7 +34,7 @@ service BssOfficeApiService {
   // ListOfficeV1 - list of offices
   rpc ListOfficesV1(ListOfficesV1Request) returns (ListOfficesV1Response) {
     option (google.api.http) = {
-      get: "/api/v1/office/list"
+      get: "/api/v1/office/list/{limit}/{offset}"
     };
   }
 }
@@ -66,6 +66,8 @@ message CreateOfficeV1Response {
 }
 
 message ListOfficesV1Request {
+  uint64 limit = 1 [(validate.rules).uint64 = {gt: 0, lt: 100}];
+  uint64 offset = 2;
 }
 
 message ListOfficesV1Response {

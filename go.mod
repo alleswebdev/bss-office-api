@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
-	github.com/Masterminds/squirrel v1.5.1 // indirect
+	github.com/Masterminds/squirrel v1.5.1
 	github.com/gammazero/workerpool v1.1.2
 	github.com/golang/mock v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
@@ -16,7 +16,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.9 // indirect
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ozonmp/bss-office-api/pkg/bss-office-api v0.0.0-00010101000000-000000000000
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.3.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/rs/zerolog v1.24.0
@@ -25,7 +25,7 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	google.golang.org/grpc v1.42.0
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 

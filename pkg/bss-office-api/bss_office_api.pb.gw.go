@@ -173,6 +173,33 @@ func request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, marshaler 
 	var protoReq ListOfficesV1Request
 	var metadata runtime.ServerMetadata
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["limit"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "limit")
+	}
+
+	protoReq.Limit, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "limit", err)
+	}
+
+	val, ok = pathParams["offset"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "offset")
+	}
+
+	protoReq.Offset, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "offset", err)
+	}
+
 	msg, err := client.ListOfficesV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -181,6 +208,33 @@ func request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, marshaler 
 func local_request_BssOfficeApiService_ListOfficesV1_0(ctx context.Context, marshaler runtime.Marshaler, server BssOfficeApiServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListOfficesV1Request
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["limit"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "limit")
+	}
+
+	protoReq.Limit, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "limit", err)
+	}
+
+	val, ok = pathParams["offset"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "offset")
+	}
+
+	protoReq.Offset, err = runtime.Uint64(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "offset", err)
+	}
 
 	msg, err := server.ListOfficesV1(ctx, &protoReq)
 	return msg, metadata, err
@@ -268,7 +322,7 @@ func RegisterBssOfficeApiServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/api/v1/office/list"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/api/v1/office/list/{limit}/{offset}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -390,7 +444,7 @@ func RegisterBssOfficeApiServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/api/v1/office/list"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1", runtime.WithHTTPPathPattern("/api/v1/office/list/{limit}/{offset}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -416,7 +470,7 @@ var (
 
 	pattern_BssOfficeApiService_RemoveOfficeV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "office", "office_id"}, ""))
 
-	pattern_BssOfficeApiService_ListOfficesV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "office", "list"}, ""))
+	pattern_BssOfficeApiService_ListOfficesV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "office", "list", "limit", "offset"}, ""))
 )
 
 var (
