@@ -1,10 +1,13 @@
 package database
 
 import (
-	"github.com/rs/zerolog/log"
-
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog/log"
 )
+
+// StatementBuilder глобальная переменная с установленным долларом в формте pgsql
+var StatementBuilder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // NewPostgres returns DB
 func NewPostgres(dsn, driver string) (*sqlx.DB, error) {
