@@ -22,7 +22,7 @@ type Repo interface {
 
 type repo struct {
 	db        *sqlx.DB
-	batchSize uint
+	batchSize uint // не нужен
 }
 
 // NewRepo returns Repo interface
@@ -34,13 +34,16 @@ func NewRepo(db *sqlx.DB, batchSize uint) Repo {
 func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error) {
 	sb := database.StatementBuilder.
 		Select("id", "name", "description", "removed", "created", "updated").
-		Where(sq.Eq{"id": officeID}).
+		Where(sq.And{
+			sq.Eq{"id": officeID},
+			sq.NotEq{"removed": "true"},
+		}).
 		From(tableName).
 		Limit(1)
 
 	query, args, err := sb.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "DescribeOffice:ToSql()")
 	}
 
 	var office model.Office
@@ -64,7 +67,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, e
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "CreateOffice:QueryContext()")
 	}
 
 	var id uint64
@@ -72,7 +75,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, e
 		err = rows.Scan(&id)
 
 		if err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, "CreateOffice:Scan()")
 		}
 
 		return id, nil
@@ -93,7 +96,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64) (bool, error) 
 
 	query, args, err := sb.ToSql()
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "RemoveOffice:ToSql()")
 	}
 
 	res, err := r.db.ExecContext(ctx, query, args...)
@@ -123,15 +126,15 @@ func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]
 		Where(sq.NotEq{"removed": "true"}).
 		Limit(limit).Offset(offset)
 
-	sql, args, err := sb.ToSql()
+	query, args, err := sb.ToSql()
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ListOffices:ToSql()")
 	}
 
 	var offices []*model.Office
 
-	err = r.db.SelectContext(ctx, &offices, sql, args...)
+	err = r.db.SelectContext(ctx, &offices, query, args...)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "db.SelectContext()")

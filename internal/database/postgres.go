@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// StatementBuilder глобальная переменная с установленным долларом в формте pgsql
+// StatementBuilder глобальная переменная с сконфигурированным плейсхолдером для pgsql
 var StatementBuilder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // NewPostgres returns DB
