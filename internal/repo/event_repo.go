@@ -28,8 +28,8 @@ func NewEventRepo(db *sqlx.DB) EventRepo {
 func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 	query := database.StatementBuilder.
 		Insert(eventsTableName).
-		Columns("office_id", "type", "status", "created").
-		Values(event.OfficeId, event.Type, event.Status, sq.Expr("NOW()")).
+		Columns("office_id", "type", "status", "payload", "created").
+		Values(event.OfficeId, event.Type, event.Status, event.Payload, sq.Expr("NOW()")).
 		Suffix("RETURNING id").
 		RunWith(r.db)
 

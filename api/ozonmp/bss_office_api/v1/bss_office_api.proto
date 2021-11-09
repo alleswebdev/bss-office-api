@@ -48,6 +48,15 @@ message Office {
   google.protobuf.Timestamp updated = 6;
 }
 
+message OfficeEvent {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  uint64 office_id = 2 [(validate.rules).uint64.gt = 0];
+  uint64 status = 3;
+  string type = 4 [(validate.rules).string = {min_len: 2, max_len: 100}];
+  google.protobuf.Timestamp created = 5;
+  Office payload = 6;
+}
+
 message DescribeOfficeV1Request {
   uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
 }

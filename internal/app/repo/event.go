@@ -64,7 +64,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 		Prefix("with cte as (select id from offices_events where status <> ? limit ? order by id ASC)", model.Deferred, n).
 		Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
 		Set("status", model.Deferred).
-		Suffix("RETURNING id, office_id, type,status,created") //payload
+		Suffix("RETURNING id, office_id, type,status,created, payload")
 
 	query, args, err := sb.ToSql()
 
