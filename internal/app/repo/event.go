@@ -15,7 +15,6 @@ const tableName = "offices_events"
 type EventRepo interface {
 	Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error)
 	Unlock(ctx context.Context, eventIDs []uint64) error
-	Add(ctx context.Context, event []model.OfficeEvent) error
 	Remove(ctx context.Context, eventIDs []uint64) error
 }
 
@@ -62,7 +61,7 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
 	sb := StatementBuilder.
 		Update(tableName).
-		Prefix("with cte as (select id from offices_events where status <> ? limit ? )", model.Deferred, n).
+		Prefix("with cte as (select id from offices_events where status <> ? limit ? order by id ASC)", model.Deferred, n).
 		Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
 		Set("status", model.Deferred).
 		Suffix("RETURNING id, office_id, type,status,created") //payload
@@ -109,8 +108,4 @@ func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
 	}
 
 	return nil
-}
-
-func (r *eventRepo) Add(ctx context.Context, event []model.OfficeEvent) error {
-	panic("implement me")
 }

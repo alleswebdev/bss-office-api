@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const tableName = "offices"
+const officesTableName = "offices"
 
 // Repo is DAO for Office
 type Repo interface {
@@ -38,7 +38,7 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 			sq.Eq{"id": officeID},
 			sq.NotEq{"removed": "true"},
 		}).
-		From(tableName).
+		From(officesTableName).
 		Limit(1)
 
 	query, args, err := sb.ToSql()
@@ -62,7 +62,7 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 
 // CreateOffice - create new office
 func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, error) {
-	query := database.StatementBuilder.Insert(tableName).Columns(
+	query := database.StatementBuilder.Insert(officesTableName).Columns(
 		"name", "description").Values(office.Name, office.Description).Suffix("RETURNING id").RunWith(r.db)
 
 	rows, err := query.QueryContext(ctx)
@@ -88,7 +88,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, e
 // office is not really delete, just set the removed flag to true
 func (r *repo) RemoveOffice(ctx context.Context, officeID uint64) (bool, error) {
 	sb := database.StatementBuilder.
-		Update(tableName).Set("removed", true).
+		Update(officesTableName).Set("removed", true).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
 			sq.NotEq{"removed": "true"},
@@ -122,7 +122,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64) (bool, error) 
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 	sb := database.StatementBuilder.
 		Select("id", "name", "description", "removed", "created", "updated").
-		From(tableName).
+		From(officesTableName).
 		Where(sq.NotEq{"removed": "true"}).
 		Limit(limit).Offset(offset)
 

@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE offices_events
+CREATE TABLE if not exists offices_events
 (
     id        BIGSERIAL PRIMARY KEY,
     office_id BIGSERIAL,

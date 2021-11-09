@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE offices
+CREATE TABLE if not exists offices
 (
     id          BIGSERIAL PRIMARY KEY,
     name        text not null,
