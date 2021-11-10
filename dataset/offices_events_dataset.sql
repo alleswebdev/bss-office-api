@@ -1,0 +1,15 @@
+INSERT INTO public.offices_events ("type",status,payload,created) VALUES
+(1,1,'{"id": 1, "name": "Hello", "description": "Hello"}','2021-11-10 19:30:02.195')
+,(1,1,'{"id": 2, "name": "Hello", "description": "Hello"}','2021-11-10 19:30:02.993')
+,(1,1,'{"id": 3, "name": "Hello", "description": "Hello"}','2021-11-10 19:30:03.561')
+,(1,1,'{"id": 4, "name": "Hello", "description": "Hello"}','2021-11-10 20:16:02.449')
+,(1,1,'{"id": 5, "name": "Hello", "description": "Hello"}','2021-11-10 20:16:04.301')
+,(1,1,'{"id": 6, "name": "Hello", "description": "Hello"}','2021-11-10 20:16:04.833')
+,(3,1,'{"id": 1, "removed": true}','2021-11-10 20:16:07.761')
+,(2,1,'{"id": 2, "name": "office 22", "description": "im edit it"}','2021-11-10 21:05:21.179')
+,(2,1,'{"id": 2, "name": "office 22", "description": "im edit it"}','2021-11-10 21:05:22.133')
+,(1,1,'{"id": 11, "name": "Hello", "description": "Hello"}','2021-11-10 21:05:30.626')
+,(3,1,'{"id": 9, "removed": true}','2021-11-10 21:05:42.880')
+,(3,1,'{"id": 11, "removed": true}','2021-11-10 21:05:47.991')
+,(2,1,'{"id": 5, "name": "office 55", "description": "im edit it"}','2021-11-10 21:05:56.374')
+;
