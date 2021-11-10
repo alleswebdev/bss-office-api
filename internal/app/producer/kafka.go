@@ -3,9 +3,9 @@ package producer
 import (
 	"context"
 	"fmt"
-	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"github.com/ozonmp/bss-office-api/internal/app/sender"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"log"
 	"sync"
 

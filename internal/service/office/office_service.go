@@ -9,17 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// IOfficeService - публичный интерфейс сервиса для работы с сущностями office
-type IOfficeService interface {
-	RemoveOffice(ctx context.Context, officeID uint64) (bool, error)
-	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
-	ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error)
-	CreateOffice(ctx context.Context, office model.Office) (uint64, error)
-	UpdateOffice(ctx context.Context, officeID uint64, office model.Office) (bool, error)
-	UpdateOfficeName(ctx context.Context, officeID uint64, name string) (bool, error)
-	UpdateOfficeDescription(ctx context.Context, officeID uint64, description string) (bool, error)
-}
-
 // EventRepo - часть публичного интерфейса, которая используется в этом сервисе
 type EventRepo interface {
 	Add(ctx context.Context, event *model.OfficeEvent) error
@@ -33,7 +22,7 @@ type officeService struct {
 }
 
 // NewOfficeService создаёт новый сервис для работы с моделью office и создания событий о её изменениях
-func NewOfficeService(or repo.OfficeRepo, er EventRepo, db *sqlx.DB) IOfficeService {
+func NewOfficeService(or repo.OfficeRepo, er EventRepo, db *sqlx.DB) *officeService {
 	return &officeService{
 		officeRepo: or,
 		eventRepo:  er,
