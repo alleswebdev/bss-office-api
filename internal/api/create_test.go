@@ -22,7 +22,7 @@ const errCreateNameValidation = "invalid CreateOfficeV1Request.Name: value lengt
 type APIFixture struct {
 	officeRepo    *mocks.MockOfficeRepo
 	eventRepo     *mocks.MockEventRepo
-	officeService office.OfficeService
+	officeService office.IOfficeService
 	ctrl          *gomock.Controller
 	apiServer     bss_office_api.BssOfficeApiServiceServer
 	db            *sql.DB

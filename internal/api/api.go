@@ -16,10 +16,10 @@ var (
 
 type officeAPI struct {
 	pb.UnimplementedBssOfficeApiServiceServer
-	service office.OfficeService
+	service office.IOfficeService
 }
 
 // NewOfficeAPI returns api of bss-office-api service
-func NewOfficeAPI(s office.OfficeService) pb.BssOfficeApiServiceServer {
+func NewOfficeAPI(s office.IOfficeService) pb.BssOfficeApiServiceServer {
 	return &officeAPI{service: s}
 }

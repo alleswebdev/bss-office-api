@@ -38,7 +38,7 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 		Select("id", "name", "description", "removed", "created", "updated").
 		Where(sq.And{
 			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": "true"},
+			sq.NotEq{"removed": true},
 		}).
 		From(officesTableName).
 		Limit(1)
@@ -81,24 +81,16 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.T
 		queryer = tx
 	}
 
-	rows, err := queryer.QueryContext(ctx, query, args...)
-
-	if err != nil {
-		return 0, errors.Wrap(err, "CreateOffice:QueryContext()")
-	}
+	row := queryer.QueryRowxContext(ctx, query, args...)
 
 	var id uint64
-	if rows.Next() {
-		err = rows.Scan(&id)
+	err = row.Scan(&id)
 
-		if err != nil {
-			return 0, errors.Wrap(err, "CreateOffice:Scan()")
-		}
-
-		return id, nil
+	if err != nil {
+		return 0, errors.Wrap(err, "CreateOffice:Scan()")
 	}
 
-	return 0, sql.ErrNoRows
+	return id, nil
 }
 
 //RemoveOffice - remove office by id
@@ -108,7 +100,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 		Update(officesTableName).Set("removed", true).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": "true"},
+			sq.NotEq{"removed": true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -150,7 +142,7 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 		Set("description", office.Description).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": "true"},
+			sq.NotEq{"removed": true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -188,10 +180,10 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name string, tx *sqlx.Tx) (bool, error) {
 	sb := database.StatementBuilder.
 		Update(officesTableName).
-		Set("description", name).
+		Set("name", name).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": "true"},
+			sq.NotEq{"removed": true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -232,7 +224,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 		Set("description", description).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": "true"},
+			sq.NotEq{"removed": true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -271,7 +263,7 @@ func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]
 	sb := database.StatementBuilder.
 		Select("id", "name", "description", "removed", "created", "updated").
 		From(officesTableName).
-		Where(sq.NotEq{"removed": "true"}).
+		Where(sq.NotEq{"removed": true}).
 		Limit(limit).Offset(offset)
 
 	query, args, err := sb.ToSql()

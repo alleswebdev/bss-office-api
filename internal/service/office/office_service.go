@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// OfficeService - публичный интерфейс сервиса для работы с сущностями office
-type OfficeService interface {
+// IOfficeService - публичный интерфейс сервиса для работы с сущностями office
+type IOfficeService interface {
 	RemoveOffice(ctx context.Context, officeID uint64) (bool, error)
 	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
 	ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error)
@@ -33,7 +33,7 @@ type officeService struct {
 }
 
 // NewOfficeService создаёт новый сервис для работы с моделью office и создания событий о её изменениях
-func NewOfficeService(or repo.OfficeRepo, er EventRepo, db *sqlx.DB) OfficeService {
+func NewOfficeService(or repo.OfficeRepo, er EventRepo, db *sqlx.DB) IOfficeService {
 	return &officeService{
 		officeRepo: or,
 		eventRepo:  er,
