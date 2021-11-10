@@ -95,6 +95,7 @@ github.com/ozonmp/bss-office-api/internal/repo/office_repo.go:275.2,279.16 3 1
 github.com/ozonmp/bss-office-api/internal/repo/office_repo.go:283.2,283.21 1 1
 github.com/ozonmp/bss-office-api/internal/repo/office_repo.go:271.16,273.3 1 0
 github.com/ozonmp/bss-office-api/internal/repo/office_repo.go:279.16,281.3 1 0
+github.com/ozonmp/bss-office-api/internal/api/api.go:23.73,25.2 1 23
 github.com/ozonmp/bss-office-api/internal/api/converters.go:9.60,18.2 1 2
 github.com/ozonmp/bss-office-api/internal/api/create.go:16.39,18.39 1 5
 github.com/ozonmp/bss-office-api/internal/api/create.go:24.2,29.16 2 2
@@ -127,4 +128,3 @@ github.com/ozonmp/bss-office-api/internal/api/update.go:45.2,49.8 2 1
 github.com/ozonmp/bss-office-api/internal/api/update.go:19.39,23.3 2 2
 github.com/ozonmp/bss-office-api/internal/api/update.go:32.35,37.3 3 1
 github.com/ozonmp/bss-office-api/internal/api/update.go:39.16,43.3 2 1
-github.com/ozonmp/bss-office-api/internal/api/api.go:23.73,25.2 1 23
