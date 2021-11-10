@@ -9,9 +9,12 @@ CREATE TABLE if not exists offices
     created     timestamp default NOW(),
     updated     timestamp default NOW()
 );
+
+CREATE INDEX offices_removed_idx ON offices(removed);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX offices_removed_idx;
 DROP TABLE offices;
 -- +goose StatementEnd

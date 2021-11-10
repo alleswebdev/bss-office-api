@@ -1,4 +1,6 @@
 mode: atomic
+github.com/ozonmp/bss-office-api/internal/api/converters.go:9.60,18.2 1 2
+github.com/ozonmp/bss-office-api/internal/api/converters.go:20.56,29.2 1 0
 github.com/ozonmp/bss-office-api/internal/api/create.go:16.39,18.39 1 5
 github.com/ozonmp/bss-office-api/internal/api/create.go:24.2,29.16 2 2
 github.com/ozonmp/bss-office-api/internal/api/create.go:35.2,39.8 2 1
@@ -31,5 +33,3 @@ github.com/ozonmp/bss-office-api/internal/api/update.go:19.39,23.3 2 2
 github.com/ozonmp/bss-office-api/internal/api/update.go:32.35,37.3 3 1
 github.com/ozonmp/bss-office-api/internal/api/update.go:39.16,43.3 2 1
 github.com/ozonmp/bss-office-api/internal/api/api.go:23.73,25.2 1 23
-github.com/ozonmp/bss-office-api/internal/api/converters.go:9.60,18.2 1 2
-github.com/ozonmp/bss-office-api/internal/api/converters.go:20.56,29.2 1 0
