@@ -37,20 +37,14 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 		Suffix("RETURNING id").
 		RunWith(r.db)
 
-	rows, err := query.QueryContext(ctx)
-
-	if err != nil {
-		return errors.Wrap(err, "Add:QueryContext()")
-	}
+	row := query.QueryRowContext(ctx)
 
 	var id uint64
 
-	if rows.Next() {
-		err = rows.Scan(&id)
+	err := row.Scan(&id)
 
-		if err != nil {
-			return errors.Wrap(err, "Add:Scan()")
-		}
+	if err != nil {
+		return errors.Wrap(err, "Add:Scan()")
 	}
 
 	event.ID = id
