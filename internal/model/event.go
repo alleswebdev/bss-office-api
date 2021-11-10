@@ -24,12 +24,10 @@ const (
 	OfficeDescriptionUpdated
 )
 
-// Deferred - событие заблокировано в репозитории для отправки
-// Processed - событие обработано
-// New - новое событие
+// Deferred - событие ожидает обработки
+// Processed - событие обрабатывается
 const (
 	_ EventStatus = iota
-	New
 	Deferred
 	Processed
 )
@@ -44,6 +42,7 @@ type OfficeEvent struct {
 	Payload  OfficePayload `db:"payload"`
 }
 
+//OfficePayload Сктура для записи информации о изменениях в сущности office
 type OfficePayload struct {
 	ID          uint64 `json:"id"`
 	Name        string `json:"name,omitempty"`
@@ -51,6 +50,7 @@ type OfficePayload struct {
 	Removed     bool   `json:"removed,omitempty"`
 }
 
+// Scan - кастомный сканер для OfficePayload
 func (op *OfficePayload) Scan(src interface{}) (err error) {
 	var payload OfficePayload
 	if src == nil {

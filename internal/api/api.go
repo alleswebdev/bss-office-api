@@ -1,8 +1,7 @@
 package api
 
 import (
-	"context"
-	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/service"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -15,19 +14,12 @@ var (
 	})
 )
 
-type OfficeService interface {
-	RemoveOffice(ctx context.Context, officeID uint64) (bool, error)
-	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
-	ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error)
-	CreateOffice(ctx context.Context, office model.Office) (uint64, error)
-}
-
 type officeAPI struct {
 	pb.UnimplementedBssOfficeApiServiceServer
-	service OfficeService
+	service service.OfficeService
 }
 
 // NewOfficeAPI returns api of bss-office-api service
-func NewOfficeAPI(s OfficeService) pb.BssOfficeApiServiceServer {
+func NewOfficeAPI(s service.OfficeService) pb.BssOfficeApiServiceServer {
 	return &officeAPI{service: s}
 }

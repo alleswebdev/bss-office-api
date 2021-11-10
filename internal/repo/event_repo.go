@@ -89,9 +89,9 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
 	sb := database.StatementBuilder.
 		Update(eventsTableName).
-		Prefix("with cte as (select id from offices_events where status <> ? order by id ASC limit ?)", model.Deferred, n).
+		Prefix("with cte as (select id from offices_events where status <> ? order by id ASC limit ?)", model.Processed, n).
 		Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
-		Set("status", model.Deferred).
+		Set("status", model.Processed).
 		Suffix("RETURNING id, office_id, type,status,created, payload")
 
 	query, args, err := sb.ToSql()
@@ -111,7 +111,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 }
 
 func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
-	sb := database.StatementBuilder.Update(eventsTableName).Where(sq.Eq{"id": eventIDs}).Set("Status", model.Processed)
+	sb := database.StatementBuilder.Update(eventsTableName).Where(sq.Eq{"id": eventIDs}).Set("Status", model.Deferred)
 
 	query, args, err := sb.ToSql()
 

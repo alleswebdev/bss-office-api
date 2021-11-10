@@ -28,7 +28,7 @@ func (o *officeAPI) DescribeOfficeV1(
 	}
 
 	if office == nil {
-		log.Debug().Uint64("officeId", req.OfficeId).Msg("office not found")
+		log.Debug().Uint64("officeId", req.GetOfficeId()).Msg("office not found")
 		totalOfficeNotFound.Inc()
 
 		return nil, status.Error(codes.NotFound, "office not found")

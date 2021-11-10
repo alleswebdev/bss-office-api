@@ -16,3 +16,14 @@ func convertBssOfficeToPb(office *model.Office) *pb.Office {
 		Updated:     timestamppb.New(office.Updated),
 	}
 }
+
+func convertPbToBssOffice(pb *pb.Office) *model.Office {
+	return &model.Office{
+		ID:          pb.GetId(),
+		Name:        pb.GetName(),
+		Description: pb.GetDescription(),
+		Removed:     pb.GetRemoved(),
+		Created:     pb.GetCreated().AsTime(),
+		Updated:     pb.GetUpdated().AsTime(),
+	}
+}

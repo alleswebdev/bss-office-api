@@ -37,6 +37,14 @@ service BssOfficeApiService {
       get: "/api/v1/office/list/{limit}/{offset}"
     };
   }
+
+  // UpdateOfficeV1 - update office fields
+  rpc UpdateOfficeV1(UpdateOfficeV1Request) returns (UpdateOfficeV1Response) {
+    option (google.api.http) = {
+      put: "/api/v1/office",
+      body: "*"
+    };
+  }
 }
 
 message Office {
@@ -89,4 +97,14 @@ message RemoveOfficeV1Request {
 
 message RemoveOfficeV1Response {
   bool found = 1;
+}
+
+message UpdateOfficeV1Request {
+  uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
+  string name = 2 [(validate.rules).string={ min_len: 2, max_len: 100 }];
+  string description = 3;
+}
+
+message UpdateOfficeV1Response {
+  bool status = 1;
 }

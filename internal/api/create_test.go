@@ -22,7 +22,7 @@ const errCreateNameValidation = "invalid CreateOfficeV1Request.Name: value lengt
 type APIFixture struct {
 	officeRepo    *mocks.MockOfficeRepo
 	eventRepo     *mocks.MockEventRepo
-	officeService OfficeService
+	officeService service.OfficeService
 	ctrl          *gomock.Controller
 	apiServer     bss_office_api.BssOfficeApiServiceServer
 	db            *sql.DB
@@ -67,7 +67,7 @@ func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 	fixture.eventRepo.EXPECT().Add(gomock.Any(), gomock.Eq(&model.OfficeEvent{
 		OfficeID: testID,
 		Type:     model.Created,
-		Status:   model.New,
+		Status:   model.Deferred,
 		Payload: model.OfficePayload{
 			ID:          testID,
 			Name:        testName,

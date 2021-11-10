@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// OfficeService - публичный интерфейс сервиса для работы с сущностями office
 type OfficeService interface {
 	RemoveOffice(ctx context.Context, officeID uint64) (bool, error)
 	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
@@ -19,6 +20,7 @@ type OfficeService interface {
 	UpdateOfficeDescription(ctx context.Context, officeID uint64, description string) (bool, error)
 }
 
+// EventRepo - часть публичного интерфейса, которая используется в этом сервисе
 type EventRepo interface {
 	Add(ctx context.Context, event *model.OfficeEvent) error
 	Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error)
@@ -30,7 +32,8 @@ type officeService struct {
 	db         *sqlx.DB
 }
 
-func NewOfficeService(or repo.OfficeRepo, er EventRepo, db *sqlx.DB) *officeService {
+// NewOfficeService создаёт новый сервис для работы с моделью office и создания событий о её изменениях
+func NewOfficeService(or repo.OfficeRepo, er EventRepo, db *sqlx.DB) OfficeService {
 	return &officeService{
 		officeRepo: or,
 		eventRepo:  er,
@@ -64,7 +67,7 @@ func (s *officeService) RemoveOffice(ctx context.Context, officeID uint64) (bool
 		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
 			OfficeID: officeID,
 			Type:     model.Removed,
-			Status:   model.New,
+			Status:   model.Deferred,
 			Payload: model.OfficePayload{
 				ID:      officeID,
 				Removed: true,
@@ -82,22 +85,22 @@ func (s *officeService) RemoveOffice(ctx context.Context, officeID uint64) (bool
 }
 
 func (s *officeService) CreateOffice(ctx context.Context, office model.Office) (uint64, error) {
-	var officeId = uint64(0)
+	var officeID = uint64(0)
 
 	txErr := database.WithTx(ctx, s.db, func(ctx context.Context, tx *sqlx.Tx) error {
 		var err error
-		officeId, err = s.officeRepo.CreateOffice(ctx, office, tx)
+		officeID, err = s.officeRepo.CreateOffice(ctx, office, tx)
 
 		if err != nil {
 			return err
 		}
 
 		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
-			OfficeID: officeId,
+			OfficeID: officeID,
 			Type:     model.Created,
-			Status:   model.New,
+			Status:   model.Deferred,
 			Payload: model.OfficePayload{
-				ID:          officeId,
+				ID:          officeID,
 				Name:        office.Name,
 				Description: office.Description,
 				Removed:     office.Removed,
@@ -111,7 +114,7 @@ func (s *officeService) CreateOffice(ctx context.Context, office model.Office) (
 		return nil
 	})
 
-	return officeId, txErr
+	return officeID, txErr
 }
 
 func (s *officeService) UpdateOffice(ctx context.Context, officeID uint64, office model.Office) (bool, error) {
@@ -132,7 +135,7 @@ func (s *officeService) UpdateOffice(ctx context.Context, officeID uint64, offic
 		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
 			OfficeID: officeID,
 			Type:     model.Updated,
-			Status:   model.New,
+			Status:   model.Deferred,
 			Payload: model.OfficePayload{
 				ID:          officeID,
 				Name:        office.Name,
@@ -168,7 +171,7 @@ func (s *officeService) UpdateOfficeName(ctx context.Context, officeID uint64, n
 		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
 			OfficeID: officeID,
 			Type:     model.OfficeNameUpdated,
-			Status:   model.New,
+			Status:   model.Deferred,
 			Payload: model.OfficePayload{
 				ID:   officeID,
 				Name: name,
@@ -203,7 +206,7 @@ func (s *officeService) UpdateOfficeDescription(ctx context.Context, officeID ui
 		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
 			OfficeID: officeID,
 			Type:     model.OfficeDescriptionUpdated,
-			Status:   model.New,
+			Status:   model.Deferred,
 			Payload: model.OfficePayload{
 				ID:          officeID,
 				Description: description,

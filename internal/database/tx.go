@@ -6,9 +6,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-type WithTxFunc func(ctx context.Context, tx *sqlx.Tx) error
+type withTxFunc func(ctx context.Context, tx *sqlx.Tx) error
 
-func WithTx(ctx context.Context, db *sqlx.DB, fn WithTxFunc) error {
+// WithTx запускает переданную функцию withTxFunc() в транзацкии и делает роллбек транзакции при ошибках
+// удобная обертка для выполнения транзакций
+func WithTx(ctx context.Context, db *sqlx.DB, fn withTxFunc) error {
 	t, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "db.BeginTxx()")

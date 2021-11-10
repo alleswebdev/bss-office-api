@@ -32,7 +32,7 @@ func Test_officeAPI_RemoveOfficeV1(t *testing.T) {
 	fixture.eventRepo.EXPECT().Add(gomock.Any(), gomock.Eq(&model.OfficeEvent{
 		OfficeID: testOfficeID,
 		Type:     model.Removed,
-		Status:   model.New,
+		Status:   model.Deferred,
 		Payload: model.OfficePayload{
 			ID:      testOfficeID,
 			Removed: true,

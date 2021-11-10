@@ -178,7 +178,7 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 	}
 
 	if rowsCount == 0 {
-		return false, nil
+		return false, sql.ErrNoRows
 	}
 
 	return true, nil
