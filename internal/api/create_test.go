@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/mocks"
 	"github.com/ozonmp/bss-office-api/internal/model"
-	"github.com/ozonmp/bss-office-api/internal/service"
+	"github.com/ozonmp/bss-office-api/internal/service/office"
 	bss_office_api "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -22,7 +22,7 @@ const errCreateNameValidation = "invalid CreateOfficeV1Request.Name: value lengt
 type APIFixture struct {
 	officeRepo    *mocks.MockOfficeRepo
 	eventRepo     *mocks.MockEventRepo
-	officeService service.OfficeService
+	officeService office.OfficeService
 	ctrl          *gomock.Controller
 	apiServer     bss_office_api.BssOfficeApiServiceServer
 	db            *sql.DB
@@ -43,7 +43,7 @@ func setUp(t *testing.T) APIFixture {
 	fixture.db = db
 	fixture.dbMock = mock
 
-	fixture.officeService = service.NewOfficeService(fixture.officeRepo, fixture.eventRepo, sqlx.NewDb(db, "sqlmock"))
+	fixture.officeService = office.NewOfficeService(fixture.officeRepo, fixture.eventRepo, sqlx.NewDb(db, "sqlmock"))
 	fixture.apiServer = NewOfficeAPI(fixture.officeService)
 
 	return fixture

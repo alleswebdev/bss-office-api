@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ozonmp/bss-office-api/internal/service"
+	"github.com/ozonmp/bss-office-api/internal/service/office"
 	"net"
 	"net/http"
 	"os"
@@ -111,7 +111,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 	officeRepo := repo.NewOfficeRepo(s.db)
 	eventRepo := repo.NewEventRepo(s.db)
 
-	pb.RegisterBssOfficeApiServiceServer(grpcServer, api.NewOfficeAPI(service.NewOfficeService(officeRepo, eventRepo, s.db)))
+	pb.RegisterBssOfficeApiServiceServer(grpcServer, api.NewOfficeAPI(office.NewOfficeService(officeRepo, eventRepo, s.db)))
 
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(grpcServer)
