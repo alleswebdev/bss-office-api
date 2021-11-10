@@ -58,7 +58,7 @@ func (c *consumer) Start(ctx context.Context) {
 			for {
 				select {
 				case <-ticker.C:
-					events, err := c.repo.Lock(c.batchSize)
+					events, err := c.repo.Lock(ctx, c.batchSize)
 					if err != nil {
 						log.Printf("consumer lock error:%s \n", err)
 						continue

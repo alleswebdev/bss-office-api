@@ -20,12 +20,16 @@ const (
 	Created
 	Updated
 	Removed
+	OfficeNameUpdated
+	OfficeDescriptionUpdated
 )
 
 // Deferred - событие заблокировано в репозитории для отправки
-// Processed - событие обработанно
+// Processed - событие обработано
+// New - новое событие
 const (
 	_ EventStatus = iota
+	New
 	Deferred
 	Processed
 )
@@ -33,7 +37,7 @@ const (
 // OfficeEvent - office event model
 type OfficeEvent struct {
 	ID       uint64        `db:"id"`
-	OfficeId uint64        `db:"office_id"`
+	OfficeID uint64        `db:"office_id"`
 	Type     EventType     `db:"type"`
 	Status   EventStatus   `db:"status"`
 	Created  time.Time     `db:"created"`
@@ -41,9 +45,10 @@ type OfficeEvent struct {
 }
 
 type OfficePayload struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Removed     bool   `json:"removed"`
+	ID          uint64 `json:"id"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Removed     bool   `json:"removed,omitempty"`
 }
 
 func (op *OfficePayload) Scan(src interface{}) (err error) {

@@ -20,7 +20,7 @@ func (o *officeAPI) DescribeOfficeV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	office, err := o.repo.DescribeOffice(ctx, req.OfficeId)
+	office, err := o.service.DescribeOffice(ctx, req.OfficeId)
 	if err != nil {
 		log.Error().Err(err).Msg("DescribeOfficeV1 -- failed")
 

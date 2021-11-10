@@ -25,7 +25,7 @@ func Test_officeAPI_ListOfficeV1(t *testing.T) {
 	testOfficeID := uint64(1)
 	testOfficeName := "test name"
 
-	fixture.repo.EXPECT().ListOffices(gomock.Any(), gomock.Eq(testLimit), gomock.Eq(testOffset)).
+	fixture.officeRepo.EXPECT().ListOffices(gomock.Any(), gomock.Eq(testLimit), gomock.Eq(testOffset)).
 		DoAndReturn(func(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 			return []*model.Office{{
 				ID:   testOfficeID,
@@ -46,8 +46,8 @@ func Test_officeAPI_ListOfficeV1_Repo_Err(t *testing.T) {
 
 	fixture := setUp(t)
 
-	errTest := errors.New("test repo err")
-	fixture.repo.EXPECT().ListOffices(gomock.Any(), gomock.Eq(testLimit), gomock.Eq(testOffset)).
+	errTest := errors.New("test officeRepo err")
+	fixture.officeRepo.EXPECT().ListOffices(gomock.Any(), gomock.Eq(testLimit), gomock.Eq(testOffset)).
 		DoAndReturn(func(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 			return nil, errTest
 		})

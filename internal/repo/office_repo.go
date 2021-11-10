@@ -12,22 +12,24 @@ import (
 
 const officesTableName = "offices"
 
-// Repo is DAO for Office
-type Repo interface {
+// OfficeRepo is DAO for Office
+type OfficeRepo interface {
 	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
-	CreateOffice(ctx context.Context, office model.Office) (uint64, error)
-	RemoveOffice(ctx context.Context, officeID uint64) (bool, error)
+	CreateOffice(ctx context.Context, office model.Office, tx *sqlx.Tx) (uint64, error)
+	RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (bool, error)
 	ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error)
+	UpdateOffice(ctx context.Context, officeID uint64, office model.Office, tx *sqlx.Tx) (bool, error)
+	UpdateOfficeName(ctx context.Context, officeID uint64, name string, tx *sqlx.Tx) (bool, error)
+	UpdateOfficeDescription(ctx context.Context, officeID uint64, description string, tx *sqlx.Tx) (bool, error)
 }
 
 type repo struct {
-	db        *sqlx.DB
-	batchSize uint // не нужен
+	db *sqlx.DB
 }
 
-// NewRepo returns Repo interface
-func NewRepo(db *sqlx.DB, batchSize uint) Repo {
-	return &repo{db: db, batchSize: batchSize}
+// NewOfficeRepo returns OfficeRepo interface
+func NewOfficeRepo(db *sqlx.DB) OfficeRepo {
+	return &repo{db: db}
 }
 
 // DescribeOffice Describe an office by id
@@ -61,11 +63,26 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 }
 
 // CreateOffice - create new office
-func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, error) {
-	query := database.StatementBuilder.Insert(officesTableName).Columns(
-		"name", "description").Values(office.Name, office.Description).Suffix("RETURNING id").RunWith(r.db)
+func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.Tx) (uint64, error) {
 
-	rows, err := query.QueryContext(ctx)
+	sb := database.StatementBuilder.Insert(officesTableName).Columns(
+		"name", "description").Values(office.Name, office.Description).Suffix("RETURNING id")
+
+	query, args, err := sb.ToSql()
+
+	if err != nil {
+		return 0, errors.Wrap(err, "CreateOffice:ToSql()")
+	}
+
+	var queryer sqlx.QueryerContext
+	if tx == nil {
+		queryer = r.db
+	} else {
+		queryer = tx
+	}
+
+	rows, err := queryer.QueryContext(ctx, query, args...)
+
 	if err != nil {
 		return 0, errors.Wrap(err, "CreateOffice:QueryContext()")
 	}
@@ -86,20 +103,151 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office) (uint64, e
 
 //RemoveOffice - remove office by id
 // office is not really delete, just set the removed flag to true
-func (r *repo) RemoveOffice(ctx context.Context, officeID uint64) (bool, error) {
+func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (bool, error) {
 	sb := database.StatementBuilder.
 		Update(officesTableName).Set("removed", true).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
 			sq.NotEq{"removed": "true"},
-		}).RunWith(r.db)
+		})
 
 	query, args, err := sb.ToSql()
 	if err != nil {
 		return false, errors.Wrap(err, "RemoveOffice:ToSql()")
 	}
 
-	res, err := r.db.ExecContext(ctx, query, args...)
+	var execer sqlx.ExecerContext
+	if tx == nil {
+		execer = r.db
+	} else {
+		execer = tx
+	}
+
+	res, err := execer.ExecContext(ctx, query, args...)
+
+	if err != nil {
+		return false, errors.Wrap(err, "db.SelectContext()")
+	}
+
+	rowsCount, err := res.RowsAffected()
+
+	if err != nil {
+		return false, errors.Wrap(err, "db.RowsAffected")
+	}
+
+	if rowsCount == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+//UpdateOffice - update all editable fields in office model by id
+func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.Office, tx *sqlx.Tx) (bool, error) {
+	sb := database.StatementBuilder.
+		Update(officesTableName).
+		Set("name", office.Name).
+		Set("description", office.Description).
+		Where(sq.And{
+			sq.Eq{"id": officeID},
+			sq.NotEq{"removed": "true"},
+		})
+
+	query, args, err := sb.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "UpdateOffice:ToSql()")
+	}
+
+	var execer sqlx.ExecerContext
+	if tx == nil {
+		execer = r.db
+	} else {
+		execer = tx
+	}
+
+	res, err := execer.ExecContext(ctx, query, args...)
+
+	if err != nil {
+		return false, errors.Wrap(err, "db.SelectContext()")
+	}
+
+	rowsCount, err := res.RowsAffected()
+
+	if err != nil {
+		return false, errors.Wrap(err, "db.RowsAffected")
+	}
+
+	if rowsCount == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+//UpdateOfficeName - update  name field in office model by id
+func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name string, tx *sqlx.Tx) (bool, error) {
+	sb := database.StatementBuilder.
+		Update(officesTableName).
+		Set("description", name).
+		Where(sq.And{
+			sq.Eq{"id": officeID},
+			sq.NotEq{"removed": "true"},
+		})
+
+	query, args, err := sb.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "UpdateOfficeName:ToSql()")
+	}
+
+	var execer sqlx.ExecerContext
+	if tx == nil {
+		execer = r.db
+	} else {
+		execer = tx
+	}
+
+	res, err := execer.ExecContext(ctx, query, args...)
+
+	if err != nil {
+		return false, errors.Wrap(err, "db.SelectContext()")
+	}
+
+	rowsCount, err := res.RowsAffected()
+
+	if err != nil {
+		return false, errors.Wrap(err, "db.RowsAffected")
+	}
+
+	if rowsCount == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+//UpdateOfficeDescription - updated all description field in office model by id
+func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, description string, tx *sqlx.Tx) (bool, error) {
+	sb := database.StatementBuilder.
+		Update(officesTableName).
+		Set("description", description).
+		Where(sq.And{
+			sq.Eq{"id": officeID},
+			sq.NotEq{"removed": "true"},
+		})
+
+	query, args, err := sb.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "UpdateOfficeDescription:ToSql()")
+	}
+
+	var execer sqlx.ExecerContext
+	if tx == nil {
+		execer = r.db
+	} else {
+		execer = tx
+	}
+
+	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
 		return false, errors.Wrap(err, "db.SelectContext()")

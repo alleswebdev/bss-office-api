@@ -18,7 +18,7 @@ func (o *officeAPI) ListOfficesV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	items, err := o.repo.ListOffices(ctx, req.GetLimit(), req.GetOffset())
+	items, err := o.service.ListOffices(ctx, req.GetLimit(), req.GetOffset())
 	if err != nil {
 		log.Error().Err(err).Msg("ListOfficesV1 -- failed")
 
