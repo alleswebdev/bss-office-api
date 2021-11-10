@@ -32,7 +32,7 @@ func NewEventRepo(db *sqlx.DB) EventRepo {
 func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 	query := database.StatementBuilder.
 		Insert(eventsTableName).
-		Columns("office_id", "type", "status", "payload", "created").
+		Columns("office_id", "type", "status", "payload", "created_at").
 		Values(event.OfficeID, event.Type, event.Status, event.Payload, sq.Expr("NOW()")).
 		Suffix("RETURNING id").
 		RunWith(r.db)
@@ -86,7 +86,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 		Prefix("with cte as (select id from offices_events where status <> ? order by id ASC limit ?)", model.Processed, n).
 		Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
 		Set("status", model.Processed).
-		Suffix("RETURNING id, office_id, type,status,created, payload")
+		Suffix("RETURNING id, office_id, type, status, created_at, payload")
 
 	query, args, err := sb.ToSql()
 

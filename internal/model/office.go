@@ -8,6 +8,6 @@ type Office struct {
 	Name        string    `db:"name"`
 	Description string    `db:"description"`
 	Removed     bool      `db:"removed"`
-	Updated     time.Time `db:"updated"`
-	Created     time.Time `db:"created"`
+	Updated     time.Time `db:"updated_at"`
+	Created     time.Time `db:"created_at"`
 }

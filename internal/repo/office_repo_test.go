@@ -61,10 +61,10 @@ func Test_repo_DescribeOffice(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created", "updated"}).
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created_at", "updated_at"}).
 		AddRow(1, testOffice.Name, testOffice.Description, false, time.Now(), time.Now())
 
-	f.dbMock.ExpectQuery(`SELECT id, name, description, removed, created, updated FROM offices WHERE (id = $1 AND removed <> $2) LIMIT 1`).
+	f.dbMock.ExpectQuery(`SELECT id, name, description, removed, created_at, updated_at FROM offices WHERE (id = $1 AND removed <> $2) LIMIT 1`).
 		WithArgs(testOffice.ID, true).
 		WillReturnRows(rows)
 
@@ -80,10 +80,10 @@ func Test_repo_ListOffices(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created", "updated"}).
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created_at", "updated_at"}).
 		AddRow(1, testOffice.Name, testOffice.Description, false, time.Now(), time.Now())
 
-	f.dbMock.ExpectQuery(`SELECT id, name, description, removed, created, updated FROM offices WHERE removed <> $1 LIMIT 0 OFFSET 5`).
+	f.dbMock.ExpectQuery(`SELECT id, name, description, removed, created_at, updated_at FROM offices WHERE removed <> $1 LIMIT 0 OFFSET 5`).
 		WithArgs(true).
 		WillReturnRows(rows)
 

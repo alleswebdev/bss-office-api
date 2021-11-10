@@ -38,7 +38,7 @@ type OfficeEvent struct {
 	OfficeID uint64        `db:"office_id"`
 	Type     EventType     `db:"type"`
 	Status   EventStatus   `db:"status"`
-	Created  time.Time     `db:"created"`
+	Created  time.Time     `db:"created_at"`
 	Payload  OfficePayload `db:"payload"`
 }
 

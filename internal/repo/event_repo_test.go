@@ -42,27 +42,11 @@ func (f *eventRepoFixture) tearDown() {
 	f.db.Close()
 }
 
-// не хочет работать с Payload, в процессе
-//func Test_eventRepo_Add(t *testing.T) {
-//	f := setUpEventRepo(t)
-//	defer f.tearDown()
-//
-//	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
-//
-//	f.dbMock.ExpectQuery(`INSERT INTO offices_events (office_id,type,status,payload,created) VALUES ($1,$2,$3,$4,NOW()) RETURNING id`).
-//		WithArgs(testEventModel.OfficeID, testEventModel.Type, testEventModel.Status, testEventModel.Payload).
-//		WillReturnRows(rows)
-//
-//	err := f.eventRepo.Add(context.Background(), &testEventModel)
-//
-//	require.NoError(t, err)
-//}
-
 func Test_eventRepo_Lock(t *testing.T) {
 	f := setUpEventRepo(t)
 	defer f.tearDown()
 
-	rows := sqlmock.NewRows([]string{"id", "office_id", "type", "status", "created", "payload"}).
+	rows := sqlmock.NewRows([]string{"id", "office_id", "type", "status", "created_at", "payload"}).
 		AddRow(1, 1, model.Created, model.Processed, time.Now(), "{}").
 		AddRow(2, 2, model.Updated, model.Processed, time.Now(), "{}").
 		AddRow(3, 3, model.Removed, model.Processed, time.Now(), "{}")
@@ -73,7 +57,7 @@ func Test_eventRepo_Lock(t *testing.T) {
 		"(select id from offices_events where status <> $1 order by id ASC limit $2)"+
 		" UPDATE offices_events SET status = $3 "+
 		"WHERE exists (select * from cte where offices_events.id = cte.id) "+
-		"RETURNING id, office_id, type,status,created, payload").
+		"RETURNING id, office_id, type, status, created_at, payload").
 		WithArgs(model.Processed, testLimit, model.Processed).
 		WillReturnRows(rows)
 
@@ -108,3 +92,19 @@ func Test_eventRepo_Unlock(t *testing.T) {
 
 	require.NoError(t, err)
 }
+
+//sqlmock не хочет работать с вложенной структурой Payload
+//func Test_eventRepo_Add(t *testing.T) {
+//	f := setUpEventRepo(t)
+//	defer f.tearDown()
+//
+//	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
+//
+//	f.dbMock.ExpectQuery(`INSERT INTO offices_events (office_id,type,status,payload,created) VALUES ($1,$2,$3,$4,NOW()) RETURNING id`).
+//		WithArgs(testEventModel.OfficeID, testEventModel.Type, testEventModel.Status, testEventModel.Payload).
+//		WillReturnRows(rows)
+//
+//	err := f.eventRepo.Add(context.Background(), &testEventModel)
+//
+//	require.NoError(t, err)
+//}

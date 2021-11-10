@@ -35,7 +35,7 @@ func NewOfficeRepo(db *sqlx.DB) OfficeRepo {
 // DescribeOffice Describe an office by id
 func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error) {
 	sb := database.StatementBuilder.
-		Select("id", "name", "description", "removed", "created", "updated").
+		Select("id", "name", "description", "removed", "created_at", "updated_at").
 		Where(sq.And{
 			sq.Eq{"id": officeID},
 			sq.NotEq{"removed": true},
@@ -261,7 +261,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 // ListOffices - return all offices
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 	sb := database.StatementBuilder.
-		Select("id", "name", "description", "removed", "created", "updated").
+		Select("id", "name", "description", "removed", "created_at", "updated_at").
 		From(officesTableName).
 		Where(sq.NotEq{"removed": true}).
 		Limit(limit).Offset(offset)
