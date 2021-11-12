@@ -53,6 +53,10 @@ func Test_eventRepo_Lock(t *testing.T) {
 
 	testLimit := uint64(3)
 
+	f.dbMock.ExpectBegin()
+	f.dbMock.ExpectQuery("select pg_try_advisory_xact_lock(1, 1)").WillReturnRows(sqlmock.NewRows([]string{"id"}).
+		AddRow(1))
+
 	f.dbMock.ExpectQuery("with cte as "+
 		"(select id from offices_events where status <> $1 order by id ASC limit $2)"+
 		" UPDATE offices_events SET status = $3 "+
@@ -60,6 +64,8 @@ func Test_eventRepo_Lock(t *testing.T) {
 		"RETURNING id, office_id, type, status, created_at, payload").
 		WithArgs(model.Processed, testLimit, model.Processed).
 		WillReturnRows(rows)
+
+	f.dbMock.ExpectCommit()
 
 	result, err := f.eventRepo.Lock(context.Background(), testLimit)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/database"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 const eventsTableName = "offices_events"
@@ -55,6 +56,7 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 	sb := database.StatementBuilder.Delete(eventsTableName).Where(sq.Eq{"id": eventIDs})
 
+	log.Info().Uints64("ids", eventIDs).Msg("ids")
 	query, args, err := sb.ToSql()
 
 	if err != nil {
@@ -74,6 +76,7 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 	}
 
 	if rowsCount == 0 {
+		log.Debug().Uints64("ids", eventIDs).Msg("NO ROWS")
 		return sql.ErrNoRows
 	}
 
@@ -81,27 +84,41 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 }
 
 func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
-	sb := database.StatementBuilder.
-		Update(eventsTableName).
-		Prefix("with cte as (select id from offices_events where status <> ? order by id ASC limit ?)", model.Processed, n).
-		Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
-		Set("status", model.Processed).
-		Suffix("RETURNING id, office_id, type, status, created_at, payload")
-
-	query, args, err := sb.ToSql()
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Lock: ToSql()")
-	}
-
 	var events []model.OfficeEvent
-	err = r.db.SelectContext(ctx, &events, query, args...)
 
-	if err != nil {
-		return nil, errors.Wrap(err, "Lock: SelectContext()")
-	}
+	txErr := database.WithTx(ctx, r.db, func(ctx context.Context, tx *sqlx.Tx) error {
+		locked, err := database.AcquireTryLock(ctx, tx, database.LockTypeOfficeEvents, database.OfficeEventsTable)
+		if err != nil {
+			return errors.Wrap(err, "Lock()")
+		}
 
-	return events, nil
+		if !locked {
+			return errors.Wrap(err, "not take lock")
+		}
+
+		sb := database.StatementBuilder.
+			Update(eventsTableName).
+			Prefix("with cte as (select id from offices_events where status <> ? order by id ASC limit ?)", model.Processed, n).
+			Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
+			Set("status", model.Processed).
+			Suffix("RETURNING id, office_id, type, status, created_at, payload")
+
+		query, args, err := sb.ToSql()
+
+		if err != nil {
+			return errors.Wrap(err, "Lock: ToSql()")
+		}
+
+		err = r.db.SelectContext(ctx, &events, query, args...)
+
+		if err != nil {
+			return errors.Wrap(err, "Lock: SelectContext()")
+		}
+
+		return nil
+	})
+
+	return events, txErr
 }
 
 func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
