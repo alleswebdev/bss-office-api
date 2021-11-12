@@ -1,15 +1,22 @@
-INSERT INTO public.offices_events ("type",status,payload,created) VALUES
-(1,1,'{"id": 1, "name": "Hello", "description": "Hello"}','2021-11-10 19:30:02.195')
-,(1,1,'{"id": 2, "name": "Hello", "description": "Hello"}','2021-11-10 19:30:02.993')
-,(1,1,'{"id": 3, "name": "Hello", "description": "Hello"}','2021-11-10 19:30:03.561')
-,(1,1,'{"id": 4, "name": "Hello", "description": "Hello"}','2021-11-10 20:16:02.449')
-,(1,1,'{"id": 5, "name": "Hello", "description": "Hello"}','2021-11-10 20:16:04.301')
-,(1,1,'{"id": 6, "name": "Hello", "description": "Hello"}','2021-11-10 20:16:04.833')
-,(3,1,'{"id": 1, "removed": true}','2021-11-10 20:16:07.761')
-,(2,1,'{"id": 2, "name": "office 22", "description": "im edit it"}','2021-11-10 21:05:21.179')
-,(2,1,'{"id": 2, "name": "office 22", "description": "im edit it"}','2021-11-10 21:05:22.133')
-,(1,1,'{"id": 11, "name": "Hello", "description": "Hello"}','2021-11-10 21:05:30.626')
-,(3,1,'{"id": 9, "removed": true}','2021-11-10 21:05:42.880')
-,(3,1,'{"id": 11, "removed": true}','2021-11-10 21:05:47.991')
-,(2,1,'{"id": 5, "name": "office 55", "description": "im edit it"}','2021-11-10 21:05:56.374')
-;
+CREATE OR REPLACE FUNCTION random_between(min INT ,max INT)
+    RETURNS INT AS
+$$
+BEGIN
+    RETURN floor(random()* (max-min + 1) + min);
+END;
+$$ language 'plpgsql' STRICT;
+
+
+CREATE OR REPLACE FUNCTION generate_payload(office_id INT)
+    RETURNS jsonb AS
+$$
+BEGIN
+    RETURN jsonb_object('{id, name, description, removed, created_at}', ARRAY[office_id::text,'test','test description','false', now()::text]);
+END;
+$$ language 'plpgsql' STRICT;
+
+
+INSERT INTO public.offices_events (office_id, type, status, payload, created_at)
+SELECT series_id as office_id, random_between(1,5), 1, generate_payload(series_id) , now() FROM generate_series(1, 100000) as series_id;
+
+

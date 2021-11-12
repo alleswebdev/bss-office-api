@@ -1,12 +1,2 @@
-INSERT INTO public.offices ("name", description, removed, created, updated)
-VALUES ('Hello', 'Hello', false, '2021-11-10 20:16:04.299', '2021-11-10 20:16:04.299')
-     , ('Hello', 'Hello', false, '2021-11-10 20:16:04.832', '2021-11-10 20:16:04.832')
-     , ('Office 4', 'great!', false, '2021-11-10 19:30:02.992', '2021-11-10 19:30:02.992')
-     , ('Office 3', 'Hello im office', false, '2021-11-10 19:30:03.560', '2021-11-10 19:30:03.560')
-     , ('Office 2', 'Big-big office 2', false, '2021-11-10 20:16:02.441', '2021-11-10 20:16:02.441')
-     , ('Office 1', 'Cool office 1', true, '2021-11-10 19:30:02.187', '2021-11-10 19:30:02.187')
-     , ('left office', 'im description', true, '2021-11-11 00:02:52.709', '2021-11-11 00:02:52.709')
-     , ('office 7', NULL, false, '2021-11-11 00:02:52.716', '2021-11-11 00:02:52.716')
-     , ('office 6', 'no have', false, '2021-11-11 00:02:52.717', '2021-11-11 00:02:52.717')
-     , ('office 5', 'im office 5', true, '2021-11-11 00:02:52.718', '2021-11-11 00:02:52.718')
-;
+INSERT INTO public.offices ("name", description, removed, created)
+SELECT 'test', 'test description', false, now() FROM generate_series(1, 100000);
