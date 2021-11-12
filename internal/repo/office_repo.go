@@ -12,6 +12,8 @@ import (
 
 const officesTableName = "offices"
 
+var colums = []string{"id", "name", "description", "removed", "created_at", "updated_at"}
+
 // OfficeRepo is DAO for Office
 type OfficeRepo interface {
 	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
@@ -35,7 +37,7 @@ func NewOfficeRepo(db *sqlx.DB) OfficeRepo {
 // DescribeOffice Describe an office by id
 func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error) {
 	sb := database.StatementBuilder.
-		Select("id", "name", "description", "removed", "created_at", "updated_at").
+		Select(colums...).
 		Where(sq.And{
 			sq.Eq{"id": officeID},
 			sq.NotEq{"removed": true},
@@ -74,13 +76,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.T
 		return 0, errors.Wrap(err, "CreateOffice:ToSql()")
 	}
 
-	var queryer sqlx.QueryerContext
-	if tx == nil {
-		queryer = r.db
-	} else {
-		queryer = tx
-	}
-
+	queryer := r.getQueryer(tx)
 	row := queryer.QueryRowxContext(ctx, query, args...)
 
 	var id uint64
@@ -108,13 +104,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 		return false, errors.Wrap(err, "RemoveOffice:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -150,13 +140,7 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 		return false, errors.Wrap(err, "UpdateOffice:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -191,13 +175,7 @@ func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name strin
 		return false, errors.Wrap(err, "UpdateOfficeName:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -232,13 +210,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 		return false, errors.Wrap(err, "UpdateOfficeDescription:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -261,7 +233,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 // ListOffices - return all offices
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 	sb := database.StatementBuilder.
-		Select("id", "name", "description", "removed", "created_at", "updated_at").
+		Select(colums...).
 		From(officesTableName).
 		Where(sq.NotEq{"removed": true}).
 		Limit(limit).Offset(offset)
@@ -281,4 +253,18 @@ func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]
 	}
 
 	return offices, nil
+}
+
+func (r *repo) getQueryer(tx *sqlx.Tx) sqlx.QueryerContext {
+	if tx == nil {
+		return r.db
+	}
+	return tx
+}
+
+func (r *repo) getExecer(tx *sqlx.Tx) sqlx.ExecerContext {
+	if tx == nil {
+		return r.db
+	}
+	return tx
 }

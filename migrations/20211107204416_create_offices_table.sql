@@ -7,7 +7,7 @@ CREATE TABLE if not exists offices
     description text      default null,
     removed     BOOLEAN   default false,
     created_at     timestamp default NOW(),
-    updated_at     timestamp default NOW()
+    updated_at     timestamp default null
 ) PARTITION BY HASH (id);
 
 CREATE INDEX offices_removed_idx ON offices(removed);
@@ -21,6 +21,6 @@ create table offices_4 partition of offices(primary key (id)) for values with (m
 
 -- +goose Down
 -- +goose StatementBegin
-DROP INDEX offices_removed_idx;
+DROP INDEX IF EXISTS offices_removed_idx;
 DROP TABLE offices;
 -- +goose StatementEnd

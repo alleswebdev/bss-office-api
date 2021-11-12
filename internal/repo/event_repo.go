@@ -7,8 +7,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/database"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 const eventsTableName = "offices_events"
@@ -31,10 +33,16 @@ func NewEventRepo(db *sqlx.DB) EventRepo {
 }
 
 func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
+	payload, err := convertBssOfficeToJsonb(&event.Payload)
+
+	if err != nil {
+		return errors.Wrap(err, "Add()")
+	}
+
 	query := database.StatementBuilder.
 		Insert(eventsTableName).
 		Columns("office_id", "type", "status", "payload", "created_at").
-		Values(event.OfficeID, event.Type, event.Status, event.Payload, sq.Expr("NOW()")).
+		Values(event.OfficeID, event.Type, event.Status, payload, sq.Expr("NOW()")).
 		Suffix("RETURNING id").
 		RunWith(r.db)
 
@@ -42,7 +50,7 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 
 	var id uint64
 
-	err := row.Scan(&id)
+	err = row.Scan(&id)
 
 	if err != nil {
 		return errors.Wrap(err, "Add:Scan()")
@@ -98,8 +106,8 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 
 		sb := database.StatementBuilder.
 			Update(eventsTableName).
-			Prefix("with cte as (select id from offices_events where status <> ? order by id ASC limit ?)", model.Processed, n).
-			Where(sq.Expr("exists (select * from cte where offices_events.id = cte.id)")).
+			Prefix("WITH cte as (SELECT id FROM offices_events WHERE status <> ? ORDER BY id ASC LIMIT ?)", model.Processed, n).
+			Where(sq.Expr("EXISTS (SELECT * FROM cte WHERE offices_events.id = cte.id)")).
 			Set("status", model.Processed).
 			Suffix("RETURNING id, office_id, type, status, created_at, payload")
 
@@ -147,4 +155,21 @@ func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
 	}
 
 	return nil
+}
+
+func convertBssOfficeToJsonb(o *model.OfficePayload) ([]byte, error) {
+	var pbStream = &pb.Office{
+		Id:          o.ID,
+		Name:        o.Name,
+		Description: o.Description,
+		Removed:     o.Removed,
+	}
+
+	payload, err := protojson.Marshal(pbStream)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "convertBssOfficeToJsonb()")
+	}
+
+	return payload, nil
 }

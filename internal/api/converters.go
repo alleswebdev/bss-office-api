@@ -13,6 +13,6 @@ func convertBssOfficeToPb(office *model.Office) *pb.Office {
 		Description: office.Description,
 		Removed:     office.Removed,
 		Created:     timestamppb.New(office.Created),
-		Updated:     timestamppb.New(office.Updated),
+		Updated:     timestamppb.New(office.Updated.Time),
 	}
 }

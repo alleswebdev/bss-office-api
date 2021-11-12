@@ -14,7 +14,6 @@ require (
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
-	github.com/mattn/go-sqlite3 v1.14.9 // indirect
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ozonmp/bss-office-api/pkg/bss-office-api v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1

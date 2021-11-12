@@ -24,8 +24,8 @@ create table offices_events_4 partition of offices_events(primary key (id)) for 
 
 -- +goose Down
 -- +goose StatementBegin
-DROP INDEX offices_events_service_id_idx;
-DROP INDEX offices_events_type_idx;
-DROP INDEX offices_events_status_idx;
+DROP INDEX IF EXISTS offices_events_service_id_idx;
+DROP INDEX IF EXISTS offices_events_type_idx;
+DROP INDEX IF EXISTS offices_events_status_idx;
 DROP TABLE offices_events;
 -- +goose StatementEnd

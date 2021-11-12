@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/stretchr/testify/require"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -25,7 +26,7 @@ type officeRepoFixture struct {
 func setUp(t *testing.T) officeRepoFixture {
 	var fixture officeRepoFixture
 
-	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
@@ -47,7 +48,7 @@ func Test_repo_CreateOffice(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 
-	f.dbMock.ExpectQuery(`INSERT INTO offices (name,description) VALUES ($1,$2) RETURNING id`).
+	f.dbMock.ExpectQuery(`INSERT INTO offices (.+) VALUES (.+) RETURNING id`).
 		WithArgs(testOffice.Name, testOffice.Description).
 		WillReturnRows(rows)
 
@@ -64,7 +65,7 @@ func Test_repo_DescribeOffice(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created_at", "updated_at"}).
 		AddRow(1, testOffice.Name, testOffice.Description, false, time.Now(), time.Now())
 
-	f.dbMock.ExpectQuery(`SELECT id, name, description, removed, created_at, updated_at FROM offices WHERE (id = $1 AND removed <> $2) LIMIT 1`).
+	f.dbMock.ExpectQuery(`SELECT (.+) FROM offices WHERE \(id = \$1 AND removed <> \$2\) LIMIT 1`).
 		WithArgs(testOffice.ID, true).
 		WillReturnRows(rows)
 
@@ -83,7 +84,7 @@ func Test_repo_ListOffices(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created_at", "updated_at"}).
 		AddRow(1, testOffice.Name, testOffice.Description, false, time.Now(), time.Now())
 
-	f.dbMock.ExpectQuery(`SELECT id, name, description, removed, created_at, updated_at FROM offices WHERE removed <> $1 LIMIT 0 OFFSET 5`).
+	f.dbMock.ExpectQuery(`SELECT (.+) FROM offices WHERE removed <> \$1 LIMIT 0 OFFSET 5`).
 		WithArgs(true).
 		WillReturnRows(rows)
 
@@ -98,7 +99,9 @@ func Test_repo_RemoveOffice(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	f.dbMock.ExpectExec(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`).
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`)
+
+	f.dbMock.ExpectExec(expectSql).
 		WithArgs(true, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.RemoveOffice(context.Background(), testOffice.ID, nil)
@@ -111,7 +114,9 @@ func Test_repo_UpdateOffice(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	f.dbMock.ExpectExec(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`).
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`)
+
+	f.dbMock.ExpectExec(expectSql).
 		WithArgs(testOffice.Name, testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.UpdateOffice(context.Background(), testOffice.ID, testOffice, nil)
@@ -124,7 +129,9 @@ func Test_repo_UpdateOfficeDescription(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	f.dbMock.ExpectExec(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`).
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`)
+
+	f.dbMock.ExpectExec(expectSql).
 		WithArgs(testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.UpdateOfficeDescription(context.Background(), testOffice.ID, testOffice.Description, nil)
@@ -137,7 +144,9 @@ func Test_repo_UpdateOfficeName(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	f.dbMock.ExpectExec(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`).
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`)
+
+	f.dbMock.ExpectExec(expectSql).
 		WithArgs(testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.UpdateOfficeName(context.Background(), testOffice.ID, testOffice.Name, nil)
