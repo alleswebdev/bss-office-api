@@ -33,7 +33,7 @@ func setUp(t *testing.T) ConsumerFixture {
 	fixture.consumer = NewDbConsumer(
 		testConsumerCount,
 		testBatchSize,
-		time.Millisecond*5,
+		time.Millisecond*10,
 		fixture.repo,
 		fixture.events,
 	)

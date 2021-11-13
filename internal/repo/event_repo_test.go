@@ -69,7 +69,7 @@ WITH cte as
 	ASC LIMIT $2)
 UPDATE offices_events SET status = $3 
 WHERE EXISTS (SELECT * FROM cte WHERE offices_events.id = cte.id) 
-RETURNING id, office_id, type, status, created_at, payload`)
+RETURNING *`)
 
 	f.dbMock.ExpectQuery(expectSql).
 		WithArgs(model.Processed, testLimit, model.Processed).
@@ -100,7 +100,7 @@ func Test_eventRepo_Unlock(t *testing.T) {
 	f := setUpEventRepo(t)
 	defer f.tearDown()
 
-	f.dbMock.ExpectExec(`UPDATE offices_events SET Status = \$1 WHERE id IN (.+)`).
+	f.dbMock.ExpectExec(`UPDATE offices_events SET status = \$1 WHERE id IN (.+)`).
 		WithArgs(model.Deferred, 1, 2).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 

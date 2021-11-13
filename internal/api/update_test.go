@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	bss_office_api "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -100,7 +101,7 @@ func Test_officeAPI_UpdateOfficeV1_Not_Found_Err(t *testing.T) {
 
 	fixture.officeRepo.EXPECT().UpdateOffice(gomock.Any(), testOfficeID, testOffice, gomock.Any()).
 		DoAndReturn(func(ctx context.Context, officeID uint64, office model.Office, tx *sqlx.Tx) (bool, error) {
-			return false, sql.ErrNoRows
+			return false, repo.ErrOfficeNotFound
 		})
 
 	res, err := fixture.apiServer.UpdateOfficeV1(context.Background(),

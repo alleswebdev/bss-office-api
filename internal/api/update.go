@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
@@ -29,7 +29,7 @@ func (o *officeAPI) UpdateOfficeV1(
 			Description: req.GetDescription(),
 		})
 
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, repo.ErrOfficeNotFound) {
 		log.Debug().Uint64("officeId", req.GetOfficeId()).Msg("office not found")
 		totalOfficeNotFound.Inc()
 

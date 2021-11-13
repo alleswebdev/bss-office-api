@@ -9,7 +9,6 @@ import (
 	"github.com/ozonmp/bss-office-api/internal/model"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -27,6 +26,15 @@ type eventRepo struct {
 	db *sqlx.DB
 }
 
+const (
+	officesEventsIdColumn        = "id"
+	officesEventsOfficeIdColumn  = "office_id"
+	officesEventsTypeColumn      = "type"
+	officesEventsStatusColumn    = "status"
+	officesEventsPayloadColumn   = "payload"
+	officesEventsCreatedAtColumn = "created_at"
+)
+
 // NewEventRepo returns EventRepo interface
 func NewEventRepo(db *sqlx.DB) EventRepo {
 	return &eventRepo{db: db}
@@ -41,9 +49,14 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 
 	query := database.StatementBuilder.
 		Insert(eventsTableName).
-		Columns("office_id", "type", "status", "payload", "created_at").
+		Columns(
+			officesEventsIdColumn,
+			officesEventsTypeColumn,
+			officesEventsStatusColumn,
+			officesEventsPayloadColumn,
+			officesEventsCreatedAtColumn).
 		Values(event.OfficeID, event.Type, event.Status, payload, sq.Expr("NOW()")).
-		Suffix("RETURNING id").
+		Suffix("RETURNING " + officesEventsIdColumn).
 		RunWith(r.db)
 
 	row := query.QueryRowContext(ctx)
@@ -62,9 +75,8 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 }
 
 func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
-	sb := database.StatementBuilder.Delete(eventsTableName).Where(sq.Eq{"id": eventIDs})
+	sb := database.StatementBuilder.Delete(eventsTableName).Where(sq.Eq{officesEventsIdColumn: eventIDs})
 
-	log.Info().Uints64("ids", eventIDs).Msg("ids")
 	query, args, err := sb.ToSql()
 
 	if err != nil {
@@ -84,8 +96,7 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 	}
 
 	if rowsCount == 0 {
-		log.Debug().Uints64("ids", eventIDs).Msg("NO ROWS")
-		return sql.ErrNoRows
+		return ErrOfficeNotFound
 	}
 
 	return nil
@@ -109,7 +120,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 			Prefix("WITH cte as (SELECT id FROM offices_events WHERE status <> ? ORDER BY id ASC LIMIT ?)", model.Processed, n).
 			Where(sq.Expr("EXISTS (SELECT * FROM cte WHERE offices_events.id = cte.id)")).
 			Set("status", model.Processed).
-			Suffix("RETURNING id, office_id, type, status, created_at, payload")
+			Suffix("RETURNING *")
 
 		query, args, err := sb.ToSql()
 
@@ -130,7 +141,9 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 }
 
 func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
-	sb := database.StatementBuilder.Update(eventsTableName).Where(sq.Eq{"id": eventIDs}).Set("Status", model.Deferred)
+	sb := database.StatementBuilder.Update(eventsTableName).
+		Where(sq.Eq{officesEventsIdColumn: eventIDs}).
+		Set(officesEventsStatusColumn, model.Deferred)
 
 	query, args, err := sb.ToSql()
 
