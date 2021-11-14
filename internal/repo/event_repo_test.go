@@ -54,27 +54,19 @@ func Test_eventRepo_Lock(t *testing.T) {
 
 	testLimit := uint64(3)
 
-	f.dbMock.ExpectBegin()
-	lockSQL := regexp.QuoteMeta("select pg_advisory_xact_lock(1)")
-
-	f.dbMock.ExpectExec(lockSQL).WillReturnResult(sqlmock.NewResult(1, 1))
-
 	expectSQL := regexp.QuoteMeta(`
-WITH cte as
-	( SELECT id
-	FROM offices_events 
-	WHERE status = $1 
-	ORDER BY id 
-	ASC LIMIT 3 )
-UPDATE offices_events SET status = $2, updated_at = NOW() 
-WHERE EXISTS ( SELECT id FROM cte WHERE offices_events.id = cte.id ) 
-RETURNING *`)
+UPDATE offices_events
+SET status = $1, updated_at = NOW()
+WHERE id IN ( 
+SELECT id FROM offices_events 
+WHERE status = $2 
+ORDER BY id 
+LIMIT 3 
+FOR UPDATE SKIP LOCKED ) RETURNING *`)
 
 	f.dbMock.ExpectQuery(expectSQL).
-		WithArgs(model.Deferred, model.Processed).
+		WithArgs(model.Processed, model.Deferred).
 		WillReturnRows(rows)
-
-	f.dbMock.ExpectCommit()
 
 	result, err := f.eventRepo.Lock(context.Background(), testLimit)
 

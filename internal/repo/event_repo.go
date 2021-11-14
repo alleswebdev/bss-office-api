@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/database"
@@ -108,56 +107,35 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 }
 
 func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
+	whereSubquery := database.StatementBuilder.
+		Select(officesEventsIDColumn).
+		From(eventsTableName).
+		Where(sq.Eq{officesEventsStatusColumn: model.Deferred}).
+		OrderBy(officesEventsIDColumn).
+		Limit(n).
+		Suffix("FOR UPDATE SKIP LOCKED")
+
+	sb := database.StatementBuilder.
+		Update(eventsTableName).
+		Where(whereSubquery.Prefix(officesEventsIDColumn+" IN (").Suffix(")")).
+		Set(officesEventsStatusColumn, model.Processed).
+		Set(officesEventsUpdatedAtColumn, sq.Expr("NOW()")).
+		Suffix("RETURNING *")
+
+	query, args, err := sb.ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Lock: ToSql()")
+	}
+
 	events := make([]model.OfficeEvent, 0)
+	err = r.db.SelectContext(ctx, &events, query, args...)
 
-	txErr := database.WithTx(ctx, r.db, func(ctx context.Context, tx *sqlx.Tx) error {
-		err := database.AcquireLock(ctx, tx, database.LockTypeOfficeEvents)
-		if err != nil {
-			return errors.Wrap(err, "Lock()")
-		}
+	if err != nil {
+		return nil, errors.Wrap(err, "Lock: SelectContext()")
+	}
 
-		cteSubQuery := database.StatementBuilder.
-			Select(officesEventsIDColumn).
-			From(eventsTableName).
-			Where(sq.Eq{officesEventsStatusColumn: model.Deferred}).
-			OrderBy(officesEventsIDColumn + " ASC").Limit(n)
-
-		cteTableName := "cte"
-
-		whereExistSubQuery := database.StatementBuilder.
-			Select(officesEventsIDColumn).
-			From(cteTableName).
-			Where(sq.Expr(
-				fmt.Sprintf("%s.%s = %s.%s",
-					eventsTableName,
-					officesEventsIDColumn,
-					cteTableName,
-					officesEventsIDColumn)))
-
-		sb := database.StatementBuilder.
-			Update(eventsTableName).
-			PrefixExpr(cteSubQuery.Prefix(fmt.Sprintf("WITH %s as (", cteTableName)).Suffix(")")).
-			Where(whereExistSubQuery.Prefix("EXISTS (").Suffix(")")).
-			Set(officesEventsStatusColumn, model.Processed).
-			Set(officesEventsUpdatedAtColumn, sq.Expr("NOW()")).
-			Suffix("RETURNING *")
-
-		query, args, err := sb.ToSql()
-
-		if err != nil {
-			return errors.Wrap(err, "Lock: ToSql()")
-		}
-
-		err = r.db.SelectContext(ctx, &events, query, args...)
-
-		if err != nil {
-			return errors.Wrap(err, "Lock: SelectContext()")
-		}
-
-		return nil
-	})
-
-	return events, txErr
+	return events, nil
 }
 
 func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {

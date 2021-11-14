@@ -46,7 +46,7 @@ type OfficeEvent struct {
 
 //OfficePayload Сктура для записи информации о изменениях в сущности office
 type OfficePayload struct {
-	ID          uint64 `json:"id"`
+	ID          uint64 `json:"id,string"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	Removed     bool   `json:"removed,omitempty"`
