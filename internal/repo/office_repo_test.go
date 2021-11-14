@@ -114,9 +114,9 @@ func Test_repo_RemoveOffice(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(true, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.RemoveOffice(context.Background(), testOffice.ID, nil)
@@ -129,9 +129,9 @@ func Test_repo_RemoveOffice_Not_Found(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(true, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
 
 	result, err := f.officeRepo.RemoveOffice(context.Background(), testOffice.ID, nil)
@@ -144,9 +144,9 @@ func Test_repo_UpdateOffice(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(testOffice.Name, testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.UpdateOffice(context.Background(), testOffice.ID, testOffice, nil)
@@ -159,9 +159,9 @@ func Test_repo_UpdateOffice_Err_Not_Found(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(testOffice.Name, testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
 
 	result, err := f.officeRepo.UpdateOffice(context.Background(), testOffice.ID, testOffice, nil)
@@ -174,9 +174,9 @@ func Test_repo_UpdateOfficeDescription(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.UpdateOfficeDescription(context.Background(), testOffice.ID, testOffice.Description, nil)
@@ -189,9 +189,9 @@ func Test_repo_UpdateOfficeDescription_Err_Not_Found(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
 
 	result, err := f.officeRepo.UpdateOfficeDescription(context.Background(), testOffice.ID, testOffice.Description, nil)
@@ -204,9 +204,9 @@ func Test_repo_UpdateOfficeName(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := f.officeRepo.UpdateOfficeName(context.Background(), testOffice.ID, testOffice.Name, nil)
@@ -219,9 +219,9 @@ func Test_repo_UpdateOfficeName_Err_Not_Found(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
 
-	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`)
+	expectSQL := regexp.QuoteMeta(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`)
 
-	f.dbMock.ExpectExec(expectSql).
+	f.dbMock.ExpectExec(expectSQL).
 		WithArgs(testOffice.Name, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
 
 	result, err := f.officeRepo.UpdateOfficeName(context.Background(), testOffice.ID, testOffice.Name, nil)

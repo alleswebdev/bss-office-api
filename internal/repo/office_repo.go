@@ -10,12 +10,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrOfficeNotFound - ошибка в методах, возникающая когда запрошенная сущность office не найдена
 var ErrOfficeNotFound = errors.New("office not found")
 
 const officesTableName = "offices"
 
 const (
-	officeIdColumn          = "id"
+	officeIDColumn          = "id"
 	officeNameColumn        = "name"
 	officeDescriptionColumn = "description"
 	officeRemovedColumn     = "removed"
@@ -47,14 +48,14 @@ func NewOfficeRepo(db *sqlx.DB) OfficeRepo {
 func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error) {
 	sb := database.StatementBuilder.
 		Select(
-			officeIdColumn,
+			officeIDColumn,
 			officeNameColumn,
 			officeDescriptionColumn,
 			officeRemovedColumn,
 			officeCreatedAtColumn,
 			officeUpdatedAtColumn).
 		Where(sq.And{
-			sq.Eq{officeIdColumn: officeID},
+			sq.Eq{officeIDColumn: officeID},
 			sq.NotEq{officeRemovedColumn: true},
 		}).
 		From(officesTableName).
@@ -86,7 +87,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.T
 		Insert(officesTableName).
 		Columns(officeNameColumn, officeDescriptionColumn).
 		Values(office.Name, office.Description).
-		Suffix("RETURNING " + officeIdColumn)
+		Suffix("RETURNING " + officeIDColumn)
 
 	query, args, err := sb.ToSql()
 
@@ -114,7 +115,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 		Update(officesTableName).
 		Set(officeRemovedColumn, true).
 		Where(sq.And{
-			sq.Eq{officeIdColumn: officeID},
+			sq.Eq{officeIDColumn: officeID},
 			sq.NotEq{officeRemovedColumn: true},
 		})
 
@@ -150,7 +151,7 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, officeModel mo
 		Set(officeNameColumn, officeModel.Name).
 		Set(officeDescriptionColumn, officeModel.Description).
 		Where(sq.And{
-			sq.Eq{officeIdColumn: officeID},
+			sq.Eq{officeIDColumn: officeID},
 			sq.NotEq{officeRemovedColumn: true},
 		})
 
@@ -185,7 +186,7 @@ func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name strin
 		Update(officesTableName).
 		Set(officeNameColumn, name).
 		Where(sq.And{
-			sq.Eq{officeIdColumn: officeID},
+			sq.Eq{officeIDColumn: officeID},
 			sq.NotEq{officeRemovedColumn: true},
 		})
 
@@ -220,7 +221,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 		Update(officesTableName).
 		Set(officeDescriptionColumn, description).
 		Where(sq.And{
-			sq.Eq{officeIdColumn: officeID},
+			sq.Eq{officeIDColumn: officeID},
 			sq.NotEq{officeRemovedColumn: true},
 		})
 
@@ -253,14 +254,14 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 	sb := database.StatementBuilder.
 		Select(
-			officeIdColumn,
+			officeIDColumn,
 			officeNameColumn,
 			officeDescriptionColumn,
 			officeRemovedColumn,
 			officeCreatedAtColumn,
 			officeUpdatedAtColumn).
 		From(officesTableName).
-		OrderBy(officeIdColumn).
+		OrderBy(officeIDColumn).
 		Where(sq.NotEq{officeRemovedColumn: true}).
 		Limit(limit).Offset(offset)
 

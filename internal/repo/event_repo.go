@@ -22,6 +22,8 @@ type EventRepo interface {
 	Remove(ctx context.Context, eventIDs []uint64) error
 }
 
+// ErrNoneRowsUnlock ошибка, возникающая когда при разблокировании событий
+//не было изменено ни одного запрошенного особытия
 var ErrNoneRowsUnlock = errors.New("no have affected rows on unlock")
 
 type eventRepo struct {
@@ -29,8 +31,8 @@ type eventRepo struct {
 }
 
 const (
-	officesEventsIdColumn        = "id"
-	officesEventsOfficeIdColumn  = "office_id"
+	officesEventsIDColumn        = "id"
+	officesEventsOfficeIDColumn  = "office_id"
 	officesEventsTypeColumn      = "type"
 	officesEventsStatusColumn    = "status"
 	officesEventsPayloadColumn   = "payload"
@@ -53,13 +55,13 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 	query := database.StatementBuilder.
 		Insert(eventsTableName).
 		Columns(
-			officesEventsOfficeIdColumn,
+			officesEventsOfficeIDColumn,
 			officesEventsTypeColumn,
 			officesEventsStatusColumn,
 			officesEventsPayloadColumn,
 			officesEventsCreatedAtColumn).
 		Values(event.OfficeID, event.Type, event.Status, payload, sq.Expr("NOW()")).
-		Suffix("RETURNING " + officesEventsIdColumn).
+		Suffix("RETURNING " + officesEventsIDColumn).
 		RunWith(r.db)
 
 	row := query.QueryRowContext(ctx)
@@ -78,7 +80,7 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 }
 
 func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
-	sb := database.StatementBuilder.Delete(eventsTableName).Where(sq.Eq{officesEventsIdColumn: eventIDs})
+	sb := database.StatementBuilder.Delete(eventsTableName).Where(sq.Eq{officesEventsIDColumn: eventIDs})
 
 	query, args, err := sb.ToSql()
 
@@ -115,22 +117,22 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 		}
 
 		cteSubQuery := database.StatementBuilder.
-			Select(officesEventsIdColumn).
+			Select(officesEventsIDColumn).
 			From(eventsTableName).
 			Where(sq.Eq{officesEventsStatusColumn: model.Deferred}).
-			OrderBy(officesEventsIdColumn + " ASC").Limit(n)
+			OrderBy(officesEventsIDColumn + " ASC").Limit(n)
 
 		cteTableName := "cte"
 
 		whereExistSubQuery := database.StatementBuilder.
-			Select(officesEventsIdColumn).
+			Select(officesEventsIDColumn).
 			From(cteTableName).
 			Where(sq.Expr(
 				fmt.Sprintf("%s.%s = %s.%s",
 					eventsTableName,
-					officesEventsIdColumn,
+					officesEventsIDColumn,
 					cteTableName,
-					officesEventsIdColumn)))
+					officesEventsIDColumn)))
 
 		sb := database.StatementBuilder.
 			Update(eventsTableName).
@@ -160,7 +162,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 
 func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
 	sb := database.StatementBuilder.Update(eventsTableName).
-		Where(sq.Eq{officesEventsIdColumn: eventIDs}).
+		Where(sq.Eq{officesEventsIDColumn: eventIDs}).
 		Set(officesEventsStatusColumn, model.Deferred)
 
 	query, args, err := sb.ToSql()
