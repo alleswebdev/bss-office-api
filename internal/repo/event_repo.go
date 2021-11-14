@@ -2,7 +2,7 @@ package repo
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/database"
@@ -22,6 +22,8 @@ type EventRepo interface {
 	Remove(ctx context.Context, eventIDs []uint64) error
 }
 
+var ErrNoneRowsUnlock = errors.New("no have affected rows on unlock")
+
 type eventRepo struct {
 	db *sqlx.DB
 }
@@ -33,6 +35,7 @@ const (
 	officesEventsStatusColumn    = "status"
 	officesEventsPayloadColumn   = "payload"
 	officesEventsCreatedAtColumn = "created_at"
+	officesEventsUpdatedAtColumn = "updated_at"
 )
 
 // NewEventRepo returns EventRepo interface
@@ -103,23 +106,38 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 }
 
 func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
-	var events []model.OfficeEvent
+	events := make([]model.OfficeEvent, 0)
 
 	txErr := database.WithTx(ctx, r.db, func(ctx context.Context, tx *sqlx.Tx) error {
-		locked, err := database.AcquireTryLock(ctx, tx, database.LockTypeOfficeEvents, database.OfficeEventsTable)
+		err := database.AcquireLock(ctx, tx, database.LockTypeOfficeEvents)
 		if err != nil {
 			return errors.Wrap(err, "Lock()")
 		}
 
-		if !locked {
-			return errors.Wrap(err, "not take lock")
-		}
+		cteSubQuery := database.StatementBuilder.
+			Select(officesEventsIdColumn).
+			From(eventsTableName).
+			Where(sq.Eq{officesEventsStatusColumn: model.Deferred}).
+			OrderBy(officesEventsIdColumn + " ASC").Limit(n)
+
+		cteTableName := "cte"
+
+		whereExistSubQuery := database.StatementBuilder.
+			Select(officesEventsIdColumn).
+			From(cteTableName).
+			Where(sq.Expr(
+				fmt.Sprintf("%s.%s = %s.%s",
+					eventsTableName,
+					officesEventsIdColumn,
+					cteTableName,
+					officesEventsIdColumn)))
 
 		sb := database.StatementBuilder.
 			Update(eventsTableName).
-			Prefix("WITH cte as (SELECT id FROM offices_events WHERE status <> ? ORDER BY id ASC LIMIT ?)", model.Processed, n).
-			Where(sq.Expr("EXISTS (SELECT * FROM cte WHERE offices_events.id = cte.id)")).
-			Set("status", model.Processed).
+			PrefixExpr(cteSubQuery.Prefix(fmt.Sprintf("WITH %s as (", cteTableName)).Suffix(")")).
+			Where(whereExistSubQuery.Prefix("EXISTS (").Suffix(")")).
+			Set(officesEventsStatusColumn, model.Processed).
+			Set(officesEventsUpdatedAtColumn, sq.Expr("NOW()")).
 			Suffix("RETURNING *")
 
 		query, args, err := sb.ToSql()
@@ -164,14 +182,14 @@ func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
 	}
 
 	if rowsCount == 0 {
-		return sql.ErrNoRows
+		return ErrNoneRowsUnlock
 	}
 
 	return nil
 }
 
 func convertBssOfficeToJsonb(o *model.OfficePayload) ([]byte, error) {
-	var pbStream = &pb.Office{
+	pbStream := &pb.Office{
 		Id:          o.ID,
 		Name:        o.Name,
 		Description: o.Description,

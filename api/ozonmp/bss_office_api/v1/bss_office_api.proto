@@ -62,7 +62,8 @@ message OfficeEvent {
   uint64 status = 3;
   string type = 4 [(validate.rules).string = {min_len: 2, max_len: 100}];
   google.protobuf.Timestamp created = 5;
-  Office payload = 6;
+  google.protobuf.Timestamp updated = 6;
+  Office payload = 7;
 }
 
 message DescribeOfficeV1Request {

@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozonmp/bss-office-api/internal/model"
@@ -77,6 +78,19 @@ func Test_repo_DescribeOffice(t *testing.T) {
 	require.Equal(t, result.Description, testOffice.Description)
 }
 
+func Test_repo_DescribeOffice_Err_Not_Found(t *testing.T) {
+	f := setUp(t)
+	defer f.tearDown()
+
+	f.dbMock.ExpectQuery(`SELECT (.+) FROM offices WHERE \(id = \$1 AND removed <> \$2\) LIMIT 1`).
+		WithArgs(testOffice.ID, true).
+		WillReturnError(sql.ErrNoRows)
+
+	_, err := f.officeRepo.DescribeOffice(context.Background(), testOffice.ID)
+
+	require.ErrorIs(t, err, ErrOfficeNotFound)
+}
+
 func Test_repo_ListOffices(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
@@ -110,6 +124,21 @@ func Test_repo_RemoveOffice(t *testing.T) {
 	require.Equal(t, result, true)
 }
 
+func Test_repo_RemoveOffice_Not_Found(t *testing.T) {
+	f := setUp(t)
+	defer f.tearDown()
+
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET removed = $1 WHERE (id = $2 AND removed <> $3)`)
+
+	f.dbMock.ExpectExec(expectSql).
+		WithArgs(true, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
+
+	result, err := f.officeRepo.RemoveOffice(context.Background(), testOffice.ID, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, result, false)
+}
+
 func Test_repo_UpdateOffice(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
@@ -123,6 +152,21 @@ func Test_repo_UpdateOffice(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, result, true)
+}
+
+func Test_repo_UpdateOffice_Err_Not_Found(t *testing.T) {
+	f := setUp(t)
+	defer f.tearDown()
+
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1, description = $2 WHERE (id = $3 AND removed <> $4)`)
+
+	f.dbMock.ExpectExec(expectSql).
+		WithArgs(testOffice.Name, testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
+
+	result, err := f.officeRepo.UpdateOffice(context.Background(), testOffice.ID, testOffice, nil)
+
+	require.ErrorIs(t, err, ErrOfficeNotFound)
+	require.Equal(t, result, false)
 }
 
 func Test_repo_UpdateOfficeDescription(t *testing.T) {
@@ -140,6 +184,21 @@ func Test_repo_UpdateOfficeDescription(t *testing.T) {
 	require.Equal(t, result, true)
 }
 
+func Test_repo_UpdateOfficeDescription_Err_Not_Found(t *testing.T) {
+	f := setUp(t)
+	defer f.tearDown()
+
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET description = $1 WHERE (id = $2 AND removed <> $3)`)
+
+	f.dbMock.ExpectExec(expectSql).
+		WithArgs(testOffice.Description, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
+
+	result, err := f.officeRepo.UpdateOfficeDescription(context.Background(), testOffice.ID, testOffice.Description, nil)
+
+	require.ErrorIs(t, err, ErrOfficeNotFound)
+	require.Equal(t, result, false)
+}
+
 func Test_repo_UpdateOfficeName(t *testing.T) {
 	f := setUp(t)
 	defer f.tearDown()
@@ -153,4 +212,19 @@ func Test_repo_UpdateOfficeName(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, result, true)
+}
+
+func Test_repo_UpdateOfficeName_Err_Not_Found(t *testing.T) {
+	f := setUp(t)
+	defer f.tearDown()
+
+	expectSql := regexp.QuoteMeta(`UPDATE offices SET name = $1 WHERE (id = $2 AND removed <> $3)`)
+
+	f.dbMock.ExpectExec(expectSql).
+		WithArgs(testOffice.Name, testOffice.ID, true).WillReturnResult(sqlmock.NewResult(0, 0))
+
+	result, err := f.officeRepo.UpdateOfficeName(context.Background(), testOffice.ID, testOffice.Name, nil)
+
+	require.ErrorIs(t, err, ErrOfficeNotFound)
+	require.Equal(t, result, false)
 }

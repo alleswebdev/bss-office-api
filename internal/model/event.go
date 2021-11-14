@@ -1,8 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"encoding/json"
-	"errors"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -39,6 +40,7 @@ type OfficeEvent struct {
 	Type     EventType     `db:"type"`
 	Status   EventStatus   `db:"status"`
 	Created  time.Time     `db:"created_at"`
+	Updated  sql.NullTime  `db:"updated_at"`
 	Payload  OfficePayload `db:"payload"`
 }
 

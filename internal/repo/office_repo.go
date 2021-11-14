@@ -23,8 +23,6 @@ const (
 	officeUpdatedAtColumn   = "updated_at"
 )
 
-var colums = []string{"id", "name", "description", "removed", "created_at", "updated_at"}
-
 // OfficeRepo is DAO for Office
 type OfficeRepo interface {
 	DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error)
@@ -71,7 +69,7 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 	err = r.db.GetContext(ctx, &office, query, args...)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, ErrOfficeNotFound
 	}
 
 	if err != nil {

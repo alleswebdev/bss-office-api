@@ -55,24 +55,23 @@ func Test_eventRepo_Lock(t *testing.T) {
 	testLimit := uint64(3)
 
 	f.dbMock.ExpectBegin()
-	lockSql := regexp.QuoteMeta("select pg_try_advisory_xact_lock(1, 1)")
+	lockSql := regexp.QuoteMeta("select pg_advisory_xact_lock(1)")
 
-	f.dbMock.ExpectQuery(lockSql).WillReturnRows(sqlmock.NewRows([]string{"id"}).
-		AddRow(1))
+	f.dbMock.ExpectExec(lockSql).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	expectSql := regexp.QuoteMeta(`
 WITH cte as
-	(SELECT id
+	( SELECT id
 	FROM offices_events 
-	WHERE status <> $1 
+	WHERE status = $1 
 	ORDER BY id 
-	ASC LIMIT $2)
-UPDATE offices_events SET status = $3 
-WHERE EXISTS (SELECT * FROM cte WHERE offices_events.id = cte.id) 
+	ASC LIMIT 3 )
+UPDATE offices_events SET status = $2, updated_at = NOW() 
+WHERE EXISTS ( SELECT id FROM cte WHERE offices_events.id = cte.id ) 
 RETURNING *`)
 
 	f.dbMock.ExpectQuery(expectSql).
-		WithArgs(model.Processed, testLimit, model.Processed).
+		WithArgs(model.Deferred, model.Processed).
 		WillReturnRows(rows)
 
 	f.dbMock.ExpectCommit()
@@ -96,6 +95,19 @@ func Test_eventRepo_Remove(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_eventRepo_Remove_Err_Not_Found(t *testing.T) {
+	f := setUpEventRepo(t)
+	defer f.tearDown()
+
+	f.dbMock.ExpectExec(`DELETE FROM offices_events WHERE id IN (.+)`).
+		WithArgs(1, 2).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	err := f.eventRepo.Remove(context.Background(), []uint64{1, 2})
+
+	require.ErrorIs(t, err, ErrOfficeNotFound)
+}
+
 func Test_eventRepo_Unlock(t *testing.T) {
 	f := setUpEventRepo(t)
 	defer f.tearDown()
@@ -107,6 +119,19 @@ func Test_eventRepo_Unlock(t *testing.T) {
 	err := f.eventRepo.Unlock(context.Background(), []uint64{1, 2})
 
 	require.NoError(t, err)
+}
+
+func Test_eventRepo_Unlock_Err_Not_Found(t *testing.T) {
+	f := setUpEventRepo(t)
+	defer f.tearDown()
+
+	f.dbMock.ExpectExec(`UPDATE offices_events SET status = \$1 WHERE id IN (.+)`).
+		WithArgs(model.Deferred, 1, 2).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	err := f.eventRepo.Unlock(context.Background(), []uint64{1, 2})
+
+	require.ErrorIs(t, err, ErrNoneRowsUnlock)
 }
 
 func Test_eventRepo_Add(t *testing.T) {

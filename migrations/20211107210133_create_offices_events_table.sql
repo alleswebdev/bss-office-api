@@ -8,9 +8,9 @@ CREATE TABLE if not exists offices_events
     status    smallint not null,
     payload   jsonb     default null,
     created_at   timestamp default NOW()
-) PARTITION BY HASH (id);;
+) PARTITION BY HASH (id);
 
-CREATE INDEX offices_events_service_id_idx ON offices_events(office_id);
+CREATE INDEX offices_events_service_id_idx ON offices_events(id);
 CREATE INDEX offices_events_type_idx ON offices_events(type);
 CREATE INDEX offices_events_status_idx ON offices_events(status);
 
