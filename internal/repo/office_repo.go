@@ -260,6 +260,7 @@ func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]
 			officeCreatedAtColumn,
 			officeUpdatedAtColumn).
 		From(officesTableName).
+		OrderBy(officeIdColumn).
 		Where(sq.NotEq{officeRemovedColumn: true}).
 		Limit(limit).Offset(offset)
 

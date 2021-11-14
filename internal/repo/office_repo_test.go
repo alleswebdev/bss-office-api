@@ -98,15 +98,16 @@ func Test_repo_ListOffices(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "name", "description", "removed", "created_at", "updated_at"}).
 		AddRow(1, testOffice.Name, testOffice.Description, false, time.Now(), time.Now())
 
-	f.dbMock.ExpectQuery(`SELECT (.+) FROM offices WHERE removed <> \$1 LIMIT 0 OFFSET 5`).
+	f.dbMock.ExpectQuery(`SELECT (.+) FROM offices WHERE removed <> \$1 ORDER BY id LIMIT 0 OFFSET 5`).
 		WithArgs(true).
 		WillReturnRows(rows)
 
 	res, err := f.officeRepo.ListOffices(context.Background(), 0, 5)
 
+	require.NoError(t, err)
+	require.Greater(t, len(res), 0)
 	require.Equal(t, testOffice.Name, res[0].Name)
 	require.Equal(t, testOffice.Description, res[0].Description)
-	require.NoError(t, err)
 }
 
 func Test_repo_RemoveOffice(t *testing.T) {

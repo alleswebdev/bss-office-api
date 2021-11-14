@@ -47,13 +47,13 @@ func (r *eventRepo) Add(ctx context.Context, event *model.OfficeEvent) error {
 	payload, err := convertBssOfficeToJsonb(&event.Payload)
 
 	if err != nil {
-		return errors.Wrap(err, "Add()")
+		return errors.Wrap(err, "convertBssOfficeToJsonb()")
 	}
 
 	query := database.StatementBuilder.
 		Insert(eventsTableName).
 		Columns(
-			officesEventsIdColumn,
+			officesEventsOfficeIdColumn,
 			officesEventsTypeColumn,
 			officesEventsStatusColumn,
 			officesEventsPayloadColumn,
