@@ -53,15 +53,10 @@ func (s *officeService) RemoveOffice(ctx context.Context, officeID uint64) (bool
 			return err
 		}
 
-		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
-			OfficeID: officeID,
-			Type:     model.Removed,
-			Status:   model.Deferred,
-			Payload: model.OfficePayload{
-				ID:      officeID,
-				Removed: true,
-			},
-		})
+		officeEvent := convertBssOfficeToBssOfficeEvent(
+			officeID, model.Removed, model.Deferred, model.Office{ID: officeID, Removed: true})
+
+		err = s.eventRepo.Add(ctx, officeEvent)
 
 		if err != nil {
 			return errors.Wrap(err, "RemoveOffice() : cannot add event")
@@ -84,17 +79,8 @@ func (s *officeService) CreateOffice(ctx context.Context, office model.Office) (
 			return err
 		}
 
-		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
-			OfficeID: officeID,
-			Type:     model.Created,
-			Status:   model.Deferred,
-			Payload: model.OfficePayload{
-				ID:          officeID,
-				Name:        office.Name,
-				Description: office.Description,
-				Removed:     office.Removed,
-			},
-		})
+		officeEvent := convertBssOfficeToBssOfficeEvent(officeID, model.Created, model.Deferred, office)
+		err = s.eventRepo.Add(ctx, officeEvent)
 
 		if err != nil {
 			return errors.Wrap(err, "CreateOffice() : cannot add event")
@@ -121,16 +107,8 @@ func (s *officeService) UpdateOffice(ctx context.Context, officeID uint64, offic
 			return err
 		}
 
-		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
-			OfficeID: officeID,
-			Type:     model.Updated,
-			Status:   model.Deferred,
-			Payload: model.OfficePayload{
-				ID:          officeID,
-				Name:        office.Name,
-				Description: office.Description,
-			},
-		})
+		officeEvent := convertBssOfficeToBssOfficeEvent(officeID, model.Updated, model.Deferred, office)
+		err = s.eventRepo.Add(ctx, officeEvent)
 
 		if err != nil {
 			return errors.Wrap(err, "UpdateOffice() : cannot add event")
@@ -157,15 +135,10 @@ func (s *officeService) UpdateOfficeName(ctx context.Context, officeID uint64, n
 			return err
 		}
 
-		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
-			OfficeID: officeID,
-			Type:     model.OfficeNameUpdated,
-			Status:   model.Deferred,
-			Payload: model.OfficePayload{
-				ID:   officeID,
-				Name: name,
-			},
-		})
+		officeEvent := convertBssOfficeToBssOfficeEvent(
+			officeID, model.OfficeNameUpdated, model.Deferred, model.Office{ID: officeID, Name: name})
+
+		err = s.eventRepo.Add(ctx, officeEvent)
 
 		if err != nil {
 			return errors.Wrap(err, "UpdateOfficeName() : cannot add event")
@@ -192,15 +165,10 @@ func (s *officeService) UpdateOfficeDescription(ctx context.Context, officeID ui
 			return err
 		}
 
-		err = s.eventRepo.Add(ctx, &model.OfficeEvent{
-			OfficeID: officeID,
-			Type:     model.OfficeDescriptionUpdated,
-			Status:   model.Deferred,
-			Payload: model.OfficePayload{
-				ID:          officeID,
-				Description: description,
-			},
-		})
+		officeEvent := convertBssOfficeToBssOfficeEvent(
+			officeID, model.OfficeDescriptionUpdated, model.Deferred, model.Office{ID: officeID, Description: description})
+
+		err = s.eventRepo.Add(ctx, officeEvent)
 
 		if err != nil {
 			return errors.Wrap(err, "UpdateOfficeDescription() : cannot add event")
@@ -210,4 +178,18 @@ func (s *officeService) UpdateOfficeDescription(ctx context.Context, officeID ui
 	})
 
 	return result, txErr
+}
+
+func convertBssOfficeToBssOfficeEvent(id uint64, eventType model.EventType, status model.EventStatus, office model.Office) *model.OfficeEvent {
+	return &model.OfficeEvent{
+		OfficeID: id,
+		Type:     eventType,
+		Status:   status,
+		Payload: model.OfficePayload{
+			ID:          id,
+			Name:        office.Name,
+			Description: office.Description,
+			Removed:     office.Removed,
+		},
+	}
 }

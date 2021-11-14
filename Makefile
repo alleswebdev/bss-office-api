@@ -98,16 +98,19 @@ build-go: generate-go .build
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
 
 
+.PHONY: goose-гз
 goose-up:
 	goose -dir migrations \
       postgres $(PG_DSN) \
       up
 
+.PHONY: goose-status
 goose-status:
 	goose -dir migrations \
       postgres $(PG_DSN) \
       status
 
+.PHONY: goose-down
 goose-down:
 	goose -dir migrations \
       postgres $(PG_DSN) \

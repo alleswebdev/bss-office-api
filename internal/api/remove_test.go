@@ -56,15 +56,14 @@ func Test_officeAPI_RemoveOfficeV1_Repo_Err(t *testing.T) {
 	errTest := errors.New("test officeRepo err")
 
 	fixture.dbMock.ExpectBegin()
-	fixture.dbMock.ExpectCommit()
 
 	fixture.officeRepo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, officeID uint64, tx *sqlx.Tx) (bool, error) {
-			return false, errTest
-		})
+		Return(false, errTest)
 
 	res, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
 		&bss_office_api.RemoveOfficeV1Request{OfficeId: testOfficeID})
+
+	fixture.dbMock.ExpectCommit()
 
 	actualStatus, _ := status.FromError(err)
 

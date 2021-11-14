@@ -26,12 +26,10 @@ func Test_officeAPI_ListOfficeV1(t *testing.T) {
 	testOfficeName := "test name"
 
 	fixture.officeRepo.EXPECT().ListOffices(gomock.Any(), gomock.Eq(testLimit), gomock.Eq(testOffset)).
-		DoAndReturn(func(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
-			return []*model.Office{{
-				ID:   testOfficeID,
-				Name: testOfficeName,
-			}}, nil
-		})
+		Return([]*model.Office{{
+			ID:   testOfficeID,
+			Name: testOfficeName,
+		}}, nil)
 
 	res, err := fixture.apiServer.ListOfficesV1(context.Background(),
 		&bss_office_api.ListOfficesV1Request{Limit: testLimit, Offset: testOffset})

@@ -64,7 +64,7 @@ func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 	fixture.dbMock.ExpectBegin()
 	fixture.dbMock.ExpectCommit()
 
-	fixture.eventRepo.EXPECT().Add(gomock.Any(), gomock.Eq(&model.OfficeEvent{
+	testOfficeEvent := model.OfficeEvent{
 		OfficeID: testID,
 		Type:     model.Created,
 		Status:   model.Deferred,
@@ -74,11 +74,13 @@ func Test_officeAPI_CreateOfficeV1(t *testing.T) {
 			Description: "",
 			Removed:     false,
 		},
-	}))
+	}
 
-	fixture.officeRepo.EXPECT().CreateOffice(gomock.Any(), model.Office{Name: testName}, gomock.Any()).DoAndReturn(func(ctx context.Context, office model.Office, tx *sqlx.Tx) (uint64, error) {
-		return testID, nil
-	})
+	fixture.eventRepo.EXPECT().Add(gomock.Any(), gomock.Eq(&testOfficeEvent))
+
+	fixture.officeRepo.EXPECT().
+		CreateOffice(gomock.Any(), model.Office{Name: testName}, gomock.Any()).
+		Return(testOfficeEvent.OfficeID, nil)
 
 	res, err := fixture.apiServer.CreateOfficeV1(context.Background(), &bss_office_api.CreateOfficeV1Request{Name: testName})
 

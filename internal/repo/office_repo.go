@@ -10,7 +10,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrOfficeNotFound - ошибка в методах, возникающая когда запрошенная сущность office не найдена
+var ErrOfficeNotFound = errors.New("office not found")
+
 const officesTableName = "offices"
+
+const (
+	officeIDColumn          = "id"
+	officeNameColumn        = "name"
+	officeDescriptionColumn = "description"
+	officeRemovedColumn     = "removed"
+	officeCreatedAtColumn   = "created_at"
+	officeUpdatedAtColumn   = "updated_at"
+)
 
 // OfficeRepo is DAO for Office
 type OfficeRepo interface {
@@ -35,10 +47,16 @@ func NewOfficeRepo(db *sqlx.DB) OfficeRepo {
 // DescribeOffice Describe an office by id
 func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error) {
 	sb := database.StatementBuilder.
-		Select("id", "name", "description", "removed", "created_at", "updated_at").
+		Select(
+			officeIDColumn,
+			officeNameColumn,
+			officeDescriptionColumn,
+			officeRemovedColumn,
+			officeCreatedAtColumn,
+			officeUpdatedAtColumn).
 		Where(sq.And{
-			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": true},
+			sq.Eq{officeIDColumn: officeID},
+			sq.NotEq{officeRemovedColumn: true},
 		}).
 		From(officesTableName).
 		Limit(1)
@@ -52,7 +70,7 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 	err = r.db.GetContext(ctx, &office, query, args...)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, ErrOfficeNotFound
 	}
 
 	if err != nil {
@@ -65,8 +83,11 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 // CreateOffice - create new office
 func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.Tx) (uint64, error) {
 
-	sb := database.StatementBuilder.Insert(officesTableName).Columns(
-		"name", "description").Values(office.Name, office.Description).Suffix("RETURNING id")
+	sb := database.StatementBuilder.
+		Insert(officesTableName).
+		Columns(officeNameColumn, officeDescriptionColumn).
+		Values(office.Name, office.Description).
+		Suffix("RETURNING " + officeIDColumn)
 
 	query, args, err := sb.ToSql()
 
@@ -74,13 +95,7 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.T
 		return 0, errors.Wrap(err, "CreateOffice:ToSql()")
 	}
 
-	var queryer sqlx.QueryerContext
-	if tx == nil {
-		queryer = r.db
-	} else {
-		queryer = tx
-	}
-
+	queryer := r.getQueryer(tx)
 	row := queryer.QueryRowxContext(ctx, query, args...)
 
 	var id uint64
@@ -97,10 +112,11 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.T
 // office is not really delete, just set the removed flag to true
 func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (bool, error) {
 	sb := database.StatementBuilder.
-		Update(officesTableName).Set("removed", true).
+		Update(officesTableName).
+		Set(officeRemovedColumn, true).
 		Where(sq.And{
-			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": true},
+			sq.Eq{officeIDColumn: officeID},
+			sq.NotEq{officeRemovedColumn: true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -108,13 +124,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 		return false, errors.Wrap(err, "RemoveOffice:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -135,14 +145,14 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 }
 
 //UpdateOffice - update all editable fields in office model by id
-func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.Office, tx *sqlx.Tx) (bool, error) {
+func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, officeModel model.Office, tx *sqlx.Tx) (bool, error) {
 	sb := database.StatementBuilder.
 		Update(officesTableName).
-		Set("name", office.Name).
-		Set("description", office.Description).
+		Set(officeNameColumn, officeModel.Name).
+		Set(officeDescriptionColumn, officeModel.Description).
 		Where(sq.And{
-			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": true},
+			sq.Eq{officeIDColumn: officeID},
+			sq.NotEq{officeRemovedColumn: true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -150,13 +160,7 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 		return false, errors.Wrap(err, "UpdateOffice:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -170,7 +174,7 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 	}
 
 	if rowsCount == 0 {
-		return false, sql.ErrNoRows
+		return false, ErrOfficeNotFound
 	}
 
 	return true, nil
@@ -180,10 +184,10 @@ func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, office model.O
 func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name string, tx *sqlx.Tx) (bool, error) {
 	sb := database.StatementBuilder.
 		Update(officesTableName).
-		Set("name", name).
+		Set(officeNameColumn, name).
 		Where(sq.And{
-			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": true},
+			sq.Eq{officeIDColumn: officeID},
+			sq.NotEq{officeRemovedColumn: true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -191,13 +195,7 @@ func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name strin
 		return false, errors.Wrap(err, "UpdateOfficeName:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -211,7 +209,7 @@ func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name strin
 	}
 
 	if rowsCount == 0 {
-		return false, nil
+		return false, ErrOfficeNotFound
 	}
 
 	return true, nil
@@ -221,10 +219,10 @@ func (r *repo) UpdateOfficeName(ctx context.Context, officeID uint64, name strin
 func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, description string, tx *sqlx.Tx) (bool, error) {
 	sb := database.StatementBuilder.
 		Update(officesTableName).
-		Set("description", description).
+		Set(officeDescriptionColumn, description).
 		Where(sq.And{
-			sq.Eq{"id": officeID},
-			sq.NotEq{"removed": true},
+			sq.Eq{officeIDColumn: officeID},
+			sq.NotEq{officeRemovedColumn: true},
 		})
 
 	query, args, err := sb.ToSql()
@@ -232,13 +230,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 		return false, errors.Wrap(err, "UpdateOfficeDescription:ToSql()")
 	}
 
-	var execer sqlx.ExecerContext
-	if tx == nil {
-		execer = r.db
-	} else {
-		execer = tx
-	}
-
+	execer := r.getExecer(tx)
 	res, err := execer.ExecContext(ctx, query, args...)
 
 	if err != nil {
@@ -252,7 +244,7 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 	}
 
 	if rowsCount == 0 {
-		return false, nil
+		return false, ErrOfficeNotFound
 	}
 
 	return true, nil
@@ -261,9 +253,16 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 // ListOffices - return all offices
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
 	sb := database.StatementBuilder.
-		Select("id", "name", "description", "removed", "created_at", "updated_at").
+		Select(
+			officeIDColumn,
+			officeNameColumn,
+			officeDescriptionColumn,
+			officeRemovedColumn,
+			officeCreatedAtColumn,
+			officeUpdatedAtColumn).
 		From(officesTableName).
-		Where(sq.NotEq{"removed": true}).
+		OrderBy(officeIDColumn).
+		Where(sq.NotEq{officeRemovedColumn: true}).
 		Limit(limit).Offset(offset)
 
 	query, args, err := sb.ToSql()
@@ -281,4 +280,18 @@ func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]
 	}
 
 	return offices, nil
+}
+
+func (r *repo) getQueryer(tx *sqlx.Tx) sqlx.QueryerContext {
+	if tx == nil {
+		return r.db
+	}
+	return tx
+}
+
+func (r *repo) getExecer(tx *sqlx.Tx) sqlx.ExecerContext {
+	if tx == nil {
+		return r.db
+	}
+	return tx
 }
