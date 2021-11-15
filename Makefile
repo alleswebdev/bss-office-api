@@ -98,7 +98,7 @@ build-go: generate-go .build
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
 
 
-.PHONY: goose-гз
+.PHONY: goose-up
 goose-up:
 	goose -dir migrations \
       postgres $(PG_DSN) \
