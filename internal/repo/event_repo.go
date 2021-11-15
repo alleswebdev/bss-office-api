@@ -106,13 +106,13 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 	return nil
 }
 
-func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
+func (r *eventRepo) Lock(ctx context.Context, batchSize uint64) ([]model.OfficeEvent, error) {
 	whereSubquery := database.StatementBuilder.
 		Select(officesEventsIDColumn).
 		From(eventsTableName).
 		Where(sq.Eq{officesEventsStatusColumn: model.Deferred}).
 		OrderBy(officesEventsIDColumn).
-		Limit(n).
+		Limit(batchSize).
 		Suffix("FOR UPDATE SKIP LOCKED")
 
 	sb := database.StatementBuilder.
@@ -128,7 +128,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64) ([]model.OfficeEvent, er
 		return nil, errors.Wrap(err, "Lock: ToSql()")
 	}
 
-	events := make([]model.OfficeEvent, 0)
+	events := make([]model.OfficeEvent, 0, batchSize)
 	err = r.db.SelectContext(ctx, &events, query, args...)
 
 	if err != nil {
