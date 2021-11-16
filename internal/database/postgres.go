@@ -1,25 +1,26 @@
 package database
 
 import (
+	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/rs/zerolog/log"
+	"github.com/ozonmp/bss-office-api/internal/logger"
 )
 
 // StatementBuilder глобальная переменная с сконфигурированным плейсхолдером для pgsql
 var StatementBuilder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // NewPostgres returns DB
-func NewPostgres(dsn, driver string) (*sqlx.DB, error) {
+func NewPostgres(ctx context.Context, dsn, driver string) (*sqlx.DB, error) {
 	db, err := sqlx.Open(driver, dsn)
 	if err != nil {
-		log.Error().Err(err).Msgf("failed to create database connection")
+		logger.ErrorKV(ctx, "failed to create database connection", "err", err)
 
 		return nil, err
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Error().Err(err).Msgf("failed ping the database")
+		logger.ErrorKV(ctx, "failed ping the database", "err", err)
 
 		return nil, err
 	}

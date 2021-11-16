@@ -4,13 +4,14 @@ services:
   frontend-proxy:
     image: nginx
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./docker/nginx/api.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - bss-office-api
     networks:
       - ompnw
+
   bss-office-api:
     build:
       network: host
@@ -27,9 +28,11 @@ services:
     depends_on:
       - postgres
       - kafka
+      - graylog
     links:
       - postgres
       - kafka
+      - graylog
     ports:
       - 8085:8080 # REST
       - 8082:8082 # gRPC

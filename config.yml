@@ -1,6 +1,6 @@
 project:
   name: Ozon Code Platform Template API
-  debug: true
+  debug: false
   environment: development
 
 grpc:
@@ -50,4 +50,5 @@ kafka:
     - "localhost:9094"
 
 telemetry:
-  graylogPath: 0.0.0.0:12201
+  #graylogPath: graylog:12201 # docker-compose
+  graylogPath: localhost:12201 #local

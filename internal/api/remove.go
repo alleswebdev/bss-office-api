@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
+	"github.com/ozonmp/bss-office-api/internal/logger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -15,21 +15,25 @@ func (o *officeAPI) RemoveOfficeV1(
 ) (*pb.RemoveOfficeV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("RemoveOfficeV1 - invalid argument")
+		logger.ErrorKV(ctx, "RemoveOfficeV1 - invalid argument", "err", err)
 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	result, err := o.service.RemoveOffice(ctx, req.GetOfficeId())
+	officeFound, err := o.service.RemoveOffice(ctx, req.GetOfficeId())
 	if err != nil {
-		log.Error().Err(err).Msg("RemoveOfficeV1 -- failed")
+		logger.ErrorKV(ctx, "RemoveOfficeV1 -- failed", "err", err)
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Debug().Msg("RemoveOfficeV1 - success")
+	if !officeFound {
+		logger.DebugKV(ctx, "RemoveOfficeV1 - office not found", "officeId", req.GetOfficeId())
+	} else {
+		logger.DebugKV(ctx, "RemoveOfficeV1 - success", "err", err)
+	}
 
 	return &pb.RemoveOfficeV1Response{
-		Found: result,
+		Found: officeFound,
 	}, nil
 }

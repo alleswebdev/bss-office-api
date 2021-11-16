@@ -2,8 +2,8 @@ package api
 
 import (
 	"context"
+	"github.com/ozonmp/bss-office-api/internal/logger"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -13,19 +13,20 @@ func (o *officeAPI) ListOfficesV1(
 	req *pb.ListOfficesV1Request,
 ) (*pb.ListOfficesV1Response, error) {
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("CreateOfficeV1 - invalid argument")
+		logger.ErrorKV(ctx, "ListOfficesV1 - invalid argument", "err", err)
 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	items, err := o.service.ListOffices(ctx, req.GetLimit(), req.GetOffset())
 	if err != nil {
-		log.Error().Err(err).Msg("ListOfficesV1 -- failed")
+		logger.ErrorKV(ctx, "ListOfficesV1 -- failed", "err", err)
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Debug().Msg("ListOfficesV1 - success")
+	logger.DebugKV(ctx, "ListOfficesV1 - success")
+
 	pbItems := make([]*pb.Office, 0, len(items))
 
 	for _, item := range items {

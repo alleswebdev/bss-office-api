@@ -52,13 +52,13 @@ func main() {
 		cfg.Database.SslMode,
 	)
 
-	db, err := database.NewPostgres(dsn, cfg.Database.Driver)
+	db, err := database.NewPostgres(ctx, dsn, cfg.Database.Driver)
 	if err != nil {
 		logger.FatalKV(ctx, "Failed init postgres", "err", err)
 	}
 	defer db.Close()
 
-	tracing, err := tracer.NewTracer(&cfg)
+	tracing, err := tracer.NewTracer(ctx, &cfg)
 	if err != nil {
 		logger.FatalKV(ctx, "Failed init tracing", "err", err)
 
@@ -103,6 +103,9 @@ func initLogger(ctx context.Context, cfg config.Config) (syncFn func()) {
 	))
 
 	return func() {
-		notSugaredLogger.Sync()
+		errInit := notSugaredLogger.Sync()
+		if errInit != nil {
+			logger.ErrorKV(ctx, "initLogger() error", "err", errInit)
+		}
 	}
 }
