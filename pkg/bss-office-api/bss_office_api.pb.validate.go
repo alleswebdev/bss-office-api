@@ -56,6 +56,28 @@ func (m *Office) Validate() error {
 
 	// no validation rules for Description
 
+	// no validation rules for Removed
+
+	if v, ok := interface{}(m.GetCreated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OfficeValidationError{
+				field:  "Created",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetUpdated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OfficeValidationError{
+				field:  "Updated",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -112,6 +134,124 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = OfficeValidationError{}
+
+// Validate checks the field values on OfficeEvent with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *OfficeEvent) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetId() <= 0 {
+		return OfficeEventValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if m.GetOfficeId() <= 0 {
+		return OfficeEventValidationError{
+			field:  "OfficeId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	// no validation rules for Status
+
+	if l := utf8.RuneCountInString(m.GetType()); l < 2 || l > 100 {
+		return OfficeEventValidationError{
+			field:  "Type",
+			reason: "value length must be between 2 and 100 runes, inclusive",
+		}
+	}
+
+	if v, ok := interface{}(m.GetCreated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OfficeEventValidationError{
+				field:  "Created",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetUpdated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OfficeEventValidationError{
+				field:  "Updated",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetPayload()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OfficeEventValidationError{
+				field:  "Payload",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// OfficeEventValidationError is the validation error returned by
+// OfficeEvent.Validate if the designated constraints aren't met.
+type OfficeEventValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e OfficeEventValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e OfficeEventValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e OfficeEventValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e OfficeEventValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e OfficeEventValidationError) ErrorName() string { return "OfficeEventValidationError" }
+
+// Error satisfies the builtin error interface
+func (e OfficeEventValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sOfficeEvent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = OfficeEventValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = OfficeEventValidationError{}
 
 // Validate checks the field values on DescribeOfficeV1Request with the rules
 // defined in the proto definition for this message. If any rules are
@@ -422,6 +562,15 @@ func (m *ListOfficesV1Request) Validate() error {
 		return nil
 	}
 
+	if val := m.GetLimit(); val <= 0 || val >= 100 {
+		return ListOfficesV1RequestValidationError{
+			field:  "Limit",
+			reason: "value must be inside range (0, 100)",
+		}
+	}
+
+	// no validation rules for Offset
+
 	return nil
 }
 
@@ -705,3 +854,155 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RemoveOfficeV1ResponseValidationError{}
+
+// Validate checks the field values on UpdateOfficeV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateOfficeV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetOfficeId() <= 0 {
+		return UpdateOfficeV1RequestValidationError{
+			field:  "OfficeId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 100 {
+		return UpdateOfficeV1RequestValidationError{
+			field:  "Name",
+			reason: "value length must be between 2 and 100 runes, inclusive",
+		}
+	}
+
+	// no validation rules for Description
+
+	return nil
+}
+
+// UpdateOfficeV1RequestValidationError is the validation error returned by
+// UpdateOfficeV1Request.Validate if the designated constraints aren't met.
+type UpdateOfficeV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateOfficeV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateOfficeV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateOfficeV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateOfficeV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateOfficeV1RequestValidationError) ErrorName() string {
+	return "UpdateOfficeV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateOfficeV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateOfficeV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateOfficeV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateOfficeV1RequestValidationError{}
+
+// Validate checks the field values on UpdateOfficeV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateOfficeV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Status
+
+	return nil
+}
+
+// UpdateOfficeV1ResponseValidationError is the validation error returned by
+// UpdateOfficeV1Response.Validate if the designated constraints aren't met.
+type UpdateOfficeV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateOfficeV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateOfficeV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateOfficeV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateOfficeV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateOfficeV1ResponseValidationError) ErrorName() string {
+	return "UpdateOfficeV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateOfficeV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateOfficeV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateOfficeV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateOfficeV1ResponseValidationError{}

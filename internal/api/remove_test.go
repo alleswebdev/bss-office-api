@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
+	"github.com/jmoiron/sqlx"
+	"github.com/ozonmp/bss-office-api/internal/model"
 	bss_office_api "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -20,9 +22,22 @@ func Test_officeAPI_RemoveOfficeV1(t *testing.T) {
 
 	testOfficeID := uint64(1)
 
-	fixture.repo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID).DoAndReturn(func(ctx context.Context, officeID uint64) (bool, error) {
+	fixture.dbMock.ExpectBegin()
+	fixture.dbMock.ExpectCommit()
+
+	fixture.officeRepo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID, gomock.Any()).DoAndReturn(func(ctx context.Context, officeID uint64, tx *sqlx.Tx) (bool, error) {
 		return true, nil
 	})
+
+	fixture.eventRepo.EXPECT().Add(gomock.Any(), gomock.Eq(&model.OfficeEvent{
+		OfficeID: testOfficeID,
+		Type:     model.Removed,
+		Status:   model.Deferred,
+		Payload: model.OfficePayload{
+			ID:      testOfficeID,
+			Removed: true,
+		},
+	}))
 
 	res, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
 		&bss_office_api.RemoveOfficeV1Request{OfficeId: testOfficeID})
@@ -38,14 +53,17 @@ func Test_officeAPI_RemoveOfficeV1_Repo_Err(t *testing.T) {
 
 	testOfficeID := uint64(1)
 
-	errTest := errors.New("test repo err")
-	fixture.repo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID).
-		DoAndReturn(func(ctx context.Context, officeID uint64) (bool, error) {
-			return false, errTest
-		})
+	errTest := errors.New("test officeRepo err")
+
+	fixture.dbMock.ExpectBegin()
+
+	fixture.officeRepo.EXPECT().RemoveOffice(gomock.Any(), testOfficeID, gomock.Any()).
+		Return(false, errTest)
 
 	res, err := fixture.apiServer.RemoveOfficeV1(context.Background(),
 		&bss_office_api.RemoveOfficeV1Request{OfficeId: testOfficeID})
+
+	fixture.dbMock.ExpectCommit()
 
 	actualStatus, _ := status.FromError(err)
 

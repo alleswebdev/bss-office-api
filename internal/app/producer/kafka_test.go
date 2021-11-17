@@ -1,6 +1,3 @@
-// +build !race
-
-// не работает с флагом гонки, нужно разобраться
 package producer
 
 import (
@@ -20,7 +17,7 @@ const testProducerCount = 1
 const testWorkerCount = 2
 const testEventBufferSize = 512
 const testBatchSize = 2
-const testTimeout = time.Millisecond * 5
+const testTimeout = time.Millisecond * 10
 
 type ProducerFixture struct {
 	producer   Producer
@@ -50,10 +47,10 @@ func setUp(t *testing.T) ProducerFixture {
 		fixture.workerPool)
 
 	fixture.model = model.OfficeEvent{
-		ID:     1,
-		Type:   model.Created,
-		Status: model.Deferred,
-		Entity: &model.Office{},
+		ID:      1,
+		Type:    model.Created,
+		Status:  model.Deferred,
+		Payload: model.OfficePayload{},
 	}
 
 	return fixture
@@ -78,7 +75,7 @@ func TestProducer_Update(t *testing.T) {
 
 	gomock.InOrder(
 		fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(nil),
-		fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(eventIDs []uint64) error {
+		fixture.repo.EXPECT().Remove(gomock.Any(), gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 			wg.Done()
 			return nil
 		}),
@@ -109,7 +106,7 @@ func TestProducer_With_Error(t *testing.T) {
 
 	gomock.InOrder(
 		fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(1),
-		fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(eventIDs []uint64) error {
+		fixture.repo.EXPECT().Unlock(gomock.Any(), gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 			wg.Done()
 			return nil
 		}).Times(1),
@@ -140,7 +137,7 @@ func TestProducer_Batch_Error(t *testing.T) {
 
 	fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(4)
 	// batch size = 2
-	fixture.repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(func(eventIDs []uint64) error {
+	fixture.repo.EXPECT().Unlock(gomock.Any(), gomock.Eq([]uint64{1,1})).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 		defer wg.Done()
 		assert.Equal(t, []uint64{fixture.model.ID, fixture.model.ID}, eventIDs)
 		return nil
@@ -172,7 +169,7 @@ func TestProducer_Batch_Error_Timeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(errors.New("test error"))
-	fixture.repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(func(eventIDs []uint64) error {
+	fixture.repo.EXPECT().Unlock(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 		defer wg.Done()
 		assert.Equal(t, []uint64{fixture.model.ID}, eventIDs)
 		return nil
@@ -202,7 +199,7 @@ func TestProducer_Batch_Start(t *testing.T) {
 
 	fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(nil).Times(4)
 	// batch size = 2
-	fixture.repo.EXPECT().Remove(gomock.Any()).DoAndReturn(func(eventIDs []uint64) error {
+	fixture.repo.EXPECT().Remove(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 		defer wg.Done()
 		assert.Equal(t, []uint64{fixture.model.ID, fixture.model.ID}, eventIDs)
 		return nil
@@ -234,7 +231,7 @@ func TestProducer_Batch_Start_Timeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 	fixture.sender.EXPECT().Send(gomock.Any(), gomock.Eq(&fixture.model)).Return(nil)
-	fixture.repo.EXPECT().Remove(gomock.Any()).DoAndReturn(func(eventIDs []uint64) error {
+	fixture.repo.EXPECT().Remove(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 		defer wg.Done()
 		assert.Equal(t, []uint64{fixture.model.ID}, eventIDs)
 		return nil

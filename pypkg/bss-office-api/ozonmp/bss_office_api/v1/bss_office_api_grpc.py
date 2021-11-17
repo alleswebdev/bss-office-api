@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 import validate.validate_pb2
 import google.api.annotations_pb2
+import google.protobuf.timestamp_pb2
 import ozonmp.bss_office_api.v1.bss_office_api_pb2
 
 
@@ -30,6 +31,10 @@ class BssOfficeApiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ListOfficesV1(self, stream: 'grpclib.server.Stream[ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Request, ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateOfficeV1(self, stream: 'grpclib.server.Stream[ozonmp.bss_office_api.v1.bss_office_api_pb2.UpdateOfficeV1Request, ozonmp.bss_office_api.v1.bss_office_api_pb2.UpdateOfficeV1Response]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -57,6 +62,12 @@ class BssOfficeApiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Request,
                 ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response,
+            ),
+            '/ozonmp.bss_office_api.v1.BssOfficeApiService/UpdateOfficeV1': grpclib.const.Handler(
+                self.UpdateOfficeV1,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                ozonmp.bss_office_api.v1.bss_office_api_pb2.UpdateOfficeV1Request,
+                ozonmp.bss_office_api.v1.bss_office_api_pb2.UpdateOfficeV1Response,
             ),
         }
 
@@ -87,4 +98,10 @@ class BssOfficeApiServiceStub:
             '/ozonmp.bss_office_api.v1.BssOfficeApiService/ListOfficesV1',
             ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Request,
             ozonmp.bss_office_api.v1.bss_office_api_pb2.ListOfficesV1Response,
+        )
+        self.UpdateOfficeV1 = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/ozonmp.bss_office_api.v1.BssOfficeApiService/UpdateOfficeV1',
+            ozonmp.bss_office_api.v1.bss_office_api_pb2.UpdateOfficeV1Request,
+            ozonmp.bss_office_api.v1.bss_office_api_pb2.UpdateOfficeV1Response,
         )
