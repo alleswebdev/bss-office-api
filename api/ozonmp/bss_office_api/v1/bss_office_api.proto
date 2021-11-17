@@ -4,6 +4,7 @@ package ozonmp.bss_office_api.v1;
 
 import "validate/validate.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ozonmp/bss-office-api/pkg/bss-office-api;bss_office_api";
 
@@ -33,7 +34,15 @@ service BssOfficeApiService {
   // ListOfficeV1 - list of offices
   rpc ListOfficesV1(ListOfficesV1Request) returns (ListOfficesV1Response) {
     option (google.api.http) = {
-      get: "/api/v1/office/list"
+      get: "/api/v1/office/list/{limit}/{offset}"
+    };
+  }
+
+  // UpdateOfficeV1 - update office fields
+  rpc UpdateOfficeV1(UpdateOfficeV1Request) returns (UpdateOfficeV1Response) {
+    option (google.api.http) = {
+      put: "/api/v1/office",
+      body: "*"
     };
   }
 }
@@ -42,6 +51,19 @@ message Office {
   uint64 id = 1 [(validate.rules).uint64.gt = 0];
   string name = 2  [(validate.rules).string = {min_len: 2, max_len: 100}];
   string description = 3;
+  bool removed = 4;
+  google.protobuf.Timestamp created = 5;
+  google.protobuf.Timestamp updated = 6;
+}
+
+message OfficeEvent {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  uint64 office_id = 2 [(validate.rules).uint64.gt = 0];
+  uint64 status = 3;
+  string type = 4 [(validate.rules).string = {min_len: 2, max_len: 100}];
+  google.protobuf.Timestamp created = 5;
+  google.protobuf.Timestamp updated = 6;
+  Office payload = 7;
 }
 
 message DescribeOfficeV1Request {
@@ -62,6 +84,8 @@ message CreateOfficeV1Response {
 }
 
 message ListOfficesV1Request {
+  uint64 limit = 1 [(validate.rules).uint64 = {gt: 0, lt: 100}];
+  uint64 offset = 2;
 }
 
 message ListOfficesV1Response {
@@ -74,4 +98,14 @@ message RemoveOfficeV1Request {
 
 message RemoveOfficeV1Response {
   bool found = 1;
+}
+
+message UpdateOfficeV1Request {
+  uint64 office_id = 1 [(validate.rules).uint64.gt = 0];
+  string name = 2 [(validate.rules).string={ min_len: 2, max_len: 100 }];
+  string description = 3;
+}
+
+message UpdateOfficeV1Response {
+  bool status = 1;
 }

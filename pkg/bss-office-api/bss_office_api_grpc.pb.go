@@ -26,6 +26,8 @@ type BssOfficeApiServiceClient interface {
 	RemoveOfficeV1(ctx context.Context, in *RemoveOfficeV1Request, opts ...grpc.CallOption) (*RemoveOfficeV1Response, error)
 	// ListOfficeV1 - list of offices
 	ListOfficesV1(ctx context.Context, in *ListOfficesV1Request, opts ...grpc.CallOption) (*ListOfficesV1Response, error)
+	// UpdateOfficeV1 - update office fields
+	UpdateOfficeV1(ctx context.Context, in *UpdateOfficeV1Request, opts ...grpc.CallOption) (*UpdateOfficeV1Response, error)
 }
 
 type bssOfficeApiServiceClient struct {
@@ -72,6 +74,15 @@ func (c *bssOfficeApiServiceClient) ListOfficesV1(ctx context.Context, in *ListO
 	return out, nil
 }
 
+func (c *bssOfficeApiServiceClient) UpdateOfficeV1(ctx context.Context, in *UpdateOfficeV1Request, opts ...grpc.CallOption) (*UpdateOfficeV1Response, error) {
+	out := new(UpdateOfficeV1Response)
+	err := c.cc.Invoke(ctx, "/ozonmp.bss_office_api.v1.BssOfficeApiService/UpdateOfficeV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BssOfficeApiServiceServer is the server API for BssOfficeApiService service.
 // All implementations must embed UnimplementedBssOfficeApiServiceServer
 // for forward compatibility
@@ -84,6 +95,8 @@ type BssOfficeApiServiceServer interface {
 	RemoveOfficeV1(context.Context, *RemoveOfficeV1Request) (*RemoveOfficeV1Response, error)
 	// ListOfficeV1 - list of offices
 	ListOfficesV1(context.Context, *ListOfficesV1Request) (*ListOfficesV1Response, error)
+	// UpdateOfficeV1 - update office fields
+	UpdateOfficeV1(context.Context, *UpdateOfficeV1Request) (*UpdateOfficeV1Response, error)
 	mustEmbedUnimplementedBssOfficeApiServiceServer()
 }
 
@@ -102,6 +115,9 @@ func (UnimplementedBssOfficeApiServiceServer) RemoveOfficeV1(context.Context, *R
 }
 func (UnimplementedBssOfficeApiServiceServer) ListOfficesV1(context.Context, *ListOfficesV1Request) (*ListOfficesV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOfficesV1 not implemented")
+}
+func (UnimplementedBssOfficeApiServiceServer) UpdateOfficeV1(context.Context, *UpdateOfficeV1Request) (*UpdateOfficeV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOfficeV1 not implemented")
 }
 func (UnimplementedBssOfficeApiServiceServer) mustEmbedUnimplementedBssOfficeApiServiceServer() {}
 
@@ -188,6 +204,24 @@ func _BssOfficeApiService_ListOfficesV1_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BssOfficeApiService_UpdateOfficeV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOfficeV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BssOfficeApiServiceServer).UpdateOfficeV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ozonmp.bss_office_api.v1.BssOfficeApiService/UpdateOfficeV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BssOfficeApiServiceServer).UpdateOfficeV1(ctx, req.(*UpdateOfficeV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BssOfficeApiService_ServiceDesc is the grpc.ServiceDesc for BssOfficeApiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -210,6 +244,10 @@ var BssOfficeApiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOfficesV1",
 			Handler:    _BssOfficeApiService_ListOfficesV1_Handler,
+		},
+		{
+			MethodName: "UpdateOfficeV1",
+			Handler:    _BssOfficeApiService_UpdateOfficeV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

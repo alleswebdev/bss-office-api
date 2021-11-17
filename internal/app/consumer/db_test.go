@@ -1,6 +1,3 @@
-// +build !race
-
-// не работает с флагом гонки, нужно разобраться
 package consumer
 
 import (
@@ -36,16 +33,16 @@ func setUp(t *testing.T) ConsumerFixture {
 	fixture.consumer = NewDbConsumer(
 		testConsumerCount,
 		testBatchSize,
-		time.Millisecond*5,
+		time.Millisecond*10,
 		fixture.repo,
 		fixture.events,
 	)
 
 	fixture.model = model.OfficeEvent{
-		ID:     1,
-		Type:   model.Created,
-		Status: model.Deferred,
-		Entity: &model.Office{},
+		ID:      1,
+		Type:    model.Created,
+		Status:  model.Deferred,
+		Payload: model.OfficePayload{},
 	}
 
 	return fixture
@@ -61,7 +58,7 @@ func Test_consumer_Start(t *testing.T) {
 	fixture := setUp(t)
 	defer fixture.tearDown()
 
-	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{fixture.model}, nil).Times(testConsumerCount)
+	fixture.repo.EXPECT().Lock(gomock.Any(), gomock.Eq(testBatchSize)).Return([]model.OfficeEvent{fixture.model}, nil).Times(testConsumerCount)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
@@ -94,7 +91,7 @@ func Test_consumer_Error(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(testConsumerCount)
 
-	fixture.repo.EXPECT().Lock(gomock.Eq(testBatchSize)).DoAndReturn(func(n uint64) ([]model.OfficeEvent, error) {
+	fixture.repo.EXPECT().Lock(gomock.Any(), gomock.Eq(testBatchSize)).DoAndReturn(func(ctx context.Context, n uint64) ([]model.OfficeEvent, error) {
 		defer wg.Done()
 		return []model.OfficeEvent{fixture.model, fixture.model}, errors.New("test lock error")
 	}).Times(testConsumerCount)
