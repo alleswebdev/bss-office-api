@@ -1,3 +1,4 @@
+// Package sender предназначен для отправки событий в брокер сообщений
 package sender
 
 import (
