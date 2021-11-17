@@ -54,3 +54,14 @@ kafka:
 telemetry:
   #graylogPath: graylog:12201 # docker-compose
   graylogPath: localhost:12201 #local
+
+
+retranslator:
+  ChannelSize: 512
+  ConsumerCount: 2
+  ConsumeSize: 10
+  ProducerCount: 28
+  ProducerTimeout: 5ms
+  ProducerBatchSize: 10
+  WorkerCount: 2
+  ConsumeTimeout: 5ms

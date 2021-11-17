@@ -5,6 +5,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/opentracing/opentracing-go"
+	"github.com/ozonmp/bss-office-api/internal/app/metrics"
 	"github.com/ozonmp/bss-office-api/internal/database"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
@@ -139,6 +140,8 @@ func (r *eventRepo) Lock(ctx context.Context, batchSize uint64) ([]model.OfficeE
 		return nil, errors.Wrap(err, "Lock: SelectContext()")
 	}
 
+	metrics.AddEventsTotal(float64(len(events)))
+
 	return events, nil
 }
 
@@ -168,6 +171,8 @@ func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
 	if rowsCount == 0 {
 		return ErrNoneRowsUnlock
 	}
+
+	metrics.SubEventsTotal(float64(rowsCount))
 
 	return nil
 }

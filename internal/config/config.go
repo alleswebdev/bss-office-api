@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -98,17 +99,32 @@ type Telemetry struct {
 	GraylogPath string `yaml:"graylogPath"`
 }
 
+// Retranslator config for retranslator
+type Retranslator struct {
+	ChannelSize uint64
+
+	ConsumerCount  int
+	ConsumeSize    uint64
+	ConsumeTimeout time.Duration
+
+	ProducerCount     int
+	ProducerTimeout   time.Duration
+	ProducerBatchSize int
+	WorkerCount       int
+}
+
 // Config - contains all configuration parameters in config package.
 type Config struct {
-	Project   Project   `yaml:"project"`
-	Grpc      Grpc      `yaml:"grpc"`
-	Rest      Rest      `yaml:"rest"`
-	Database  Database  `yaml:"database"`
-	Metrics   Metrics   `yaml:"metrics"`
-	Jaeger    Jaeger    `yaml:"jaeger"`
-	Kafka     Kafka     `yaml:"kafka"`
-	Status    Status    `yaml:"status"`
-	Telemetry Telemetry `yaml:"telemetry"`
+	Project      Project      `yaml:"project"`
+	Grpc         Grpc         `yaml:"grpc"`
+	Rest         Rest         `yaml:"rest"`
+	Database     Database     `yaml:"database"`
+	Metrics      Metrics      `yaml:"metrics"`
+	Jaeger       Jaeger       `yaml:"jaeger"`
+	Kafka        Kafka        `yaml:"kafka"`
+	Status       Status       `yaml:"status"`
+	Telemetry    Telemetry    `yaml:"telemetry"`
+	Retranslator Retranslator `yaml:"retranslator"`
 }
 
 // ReadConfigYML - read configurations from file and init instance Config.

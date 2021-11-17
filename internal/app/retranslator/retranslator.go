@@ -3,13 +3,12 @@ package retranslator
 
 import (
 	"context"
-	"github.com/ozonmp/bss-office-api/internal/repo"
-	"time"
-
 	"github.com/ozonmp/bss-office-api/internal/app/consumer"
 	"github.com/ozonmp/bss-office-api/internal/app/producer"
 	"github.com/ozonmp/bss-office-api/internal/app/sender"
+	"github.com/ozonmp/bss-office-api/internal/config"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 
 	"github.com/gammazero/workerpool"
 )
@@ -20,31 +19,6 @@ type Retranslator interface {
 	Close()
 }
 
-// Config конфигурирует запускаемый экземпляр ретранслятора
-// ChannelSize - размер канала пересылаемых событий
-// ConsumerCount - количество горутин с Consumer
-// ConsumeSize  - размер канала Consumer
-// ConsumeTimeout - время ожидания до следующего batch-запроса
-// ProducerCount - количество горутин с Producer
-// WorkerCount - количество воркеров в воркерпуле для очистки и обновления событий в БД после отправки в брокер сообщений
-// Repo - репозиторий для работы с событиями
-// Sender - сервис для отправки событий в кафку
-type Config struct {
-	ChannelSize uint64
-
-	ConsumerCount  int
-	ConsumeSize    uint64
-	ConsumeTimeout time.Duration
-
-	ProducerCount     int
-	ProducerTimeout   time.Duration
-	ProducerBatchSize int
-	WorkerCount       int
-
-	Repo   repo.EventRepo
-	Sender sender.EventSender
-}
-
 type retranslator struct {
 	events     chan model.OfficeEvent
 	consumer   consumer.Consumer
@@ -53,22 +27,22 @@ type retranslator struct {
 }
 
 // NewRetranslator create new Retranslator from config
-func NewRetranslator(cfg Config) Retranslator {
-	events := make(chan model.OfficeEvent, cfg.ChannelSize)
-	workerPool := workerpool.New(cfg.WorkerCount)
+func NewRetranslator(cfg config.Config, repo repo.EventRepo, sender sender.EventSender) Retranslator {
+	events := make(chan model.OfficeEvent, cfg.Retranslator.ChannelSize)
+	workerPool := workerpool.New(cfg.Retranslator.WorkerCount)
 
 	consumer := consumer.NewDbConsumer(
-		cfg.ConsumerCount,
-		cfg.ConsumeSize,
-		cfg.ConsumeTimeout,
-		cfg.Repo,
+		cfg.Retranslator.ConsumerCount,
+		cfg.Retranslator.ConsumeSize,
+		cfg.Retranslator.ConsumeTimeout,
+		repo,
 		events)
 	producer := producer.NewKafkaProducer(
-		cfg.ProducerCount,
-		cfg.ProducerBatchSize,
-		cfg.ProducerTimeout,
-		cfg.Sender,
-		cfg.Repo,
+		cfg.Retranslator.ProducerCount,
+		cfg.Retranslator.ProducerBatchSize,
+		cfg.Retranslator.ProducerTimeout,
+		sender,
+		repo,
 		events,
 		workerPool)
 
