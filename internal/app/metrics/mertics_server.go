@@ -1,14 +1,14 @@
-package server
+package metrics
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/ozonmp/bss-office-api/internal/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
 )
 
-func createMetricsServer(cfg *config.Config) *http.Server {
+// CreateMetricsServer - создаёт http-endpoint с метриками
+func CreateMetricsServer(cfg *config.Config) *http.Server {
 	addr := fmt.Sprintf("%s:%d", cfg.Metrics.Host, cfg.Metrics.Port)
 
 	mux := http.DefaultServeMux

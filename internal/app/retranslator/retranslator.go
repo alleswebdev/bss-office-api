@@ -27,7 +27,7 @@ type retranslator struct {
 }
 
 // NewRetranslator create new Retranslator from config
-func NewRetranslator(cfg config.Config, repo repo.EventRepo, sender sender.EventSender) Retranslator {
+func NewRetranslator(cfg *config.Config, repo repo.EventRepo, sender sender.EventSender) Retranslator {
 	events := make(chan model.OfficeEvent, cfg.Retranslator.ChannelSize)
 	workerPool := workerpool.New(cfg.Retranslator.WorkerCount)
 
@@ -56,7 +56,7 @@ func NewRetranslator(cfg config.Config, repo repo.EventRepo, sender sender.Event
 
 // Start запускает ранее сконфигурированный ретранслятор и его продюсееров и консюмеров
 func (r *retranslator) Start(ctx context.Context) {
-	r.producer.Start(ctx)
+	r.producer.StartBatch(ctx)
 	r.consumer.Start(ctx)
 }
 

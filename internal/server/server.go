@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
 	"github.com/ozonmp/bss-office-api/internal/server/interceptors"
 	"github.com/ozonmp/bss-office-api/internal/service/office"
 	"net"
@@ -73,6 +74,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 			log.Error().Err(err).Msg("Failed running metrics server")
 			cancel()
 		}
+		metrics.InitMetrics(cfg)
 	}()
 
 	isReady := &atomic.Value{}

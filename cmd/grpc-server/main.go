@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"os"
 
-	"github.com/rs/zerolog/log"
+	"log"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -29,8 +29,9 @@ func main() {
 	ctx := context.Background()
 
 	if err := config.ReadConfigYML("config.yml"); err != nil {
-		log.Fatal().Err(err).Msg("Failed init configuration")
+		log.Fatalf("Failed init configuration:%s", err)
 	}
+
 	cfg := config.GetConfigInstance()
 
 	syncLogger := initLogger(ctx, cfg)

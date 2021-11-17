@@ -7,6 +7,7 @@ import (
 )
 
 var totalEventsProcessing prometheus.Gauge
+var totalEventsProcessed prometheus.Counter
 
 // InitMetrics - инициализирует метрики
 func InitMetrics(cfg config.Config) {
@@ -16,10 +17,17 @@ func InitMetrics(cfg config.Config) {
 		Name:      "events_processing_total",
 		Help:      "Total number of the events in processing",
 	})
+
+	totalEventsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: cfg.Metrics.Namespace,
+		Subsystem: cfg.Metrics.Subsystem,
+		Name:      "events_processed_total",
+		Help:      "Total number of the processed events",
+	})
 }
 
-// AddEventsTotal - увеличивает счетчик обрабатываемых событий
-func AddEventsTotal(count float64) {
+// AddEventsProcessingTotal - увеличивает счетчик обрабатываемых событий
+func AddEventsProcessingTotal(count float64) {
 	if totalEventsProcessing == nil {
 		return
 	}
@@ -27,11 +35,20 @@ func AddEventsTotal(count float64) {
 	totalEventsProcessing.Add(count)
 }
 
-// SubEventsTotal - уменьшает счетчик обрабатываемых событий
-func SubEventsTotal(count float64) {
+// SubEventsProcessingTotal - уменьшает счетчик обрабатываемых событий
+func SubEventsProcessingTotal(count float64) {
 	if totalEventsProcessing == nil {
 		return
 	}
 
 	totalEventsProcessing.Sub(count)
+}
+
+// AddEventsProcessedTotal - увеличивает счетчик обработанных событий
+func AddEventsProcessedTotal(count float64) {
+	if totalEventsProcessing == nil {
+		return
+	}
+
+	totalEventsProcessed.Add(count)
 }

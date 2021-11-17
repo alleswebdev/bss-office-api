@@ -108,6 +108,8 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64) error {
 		return ErrOfficeNotFound
 	}
 
+	metrics.SubEventsProcessingTotal(float64(rowsCount))
+
 	return nil
 }
 
@@ -140,8 +142,8 @@ func (r *eventRepo) Lock(ctx context.Context, batchSize uint64) ([]model.OfficeE
 		return nil, errors.Wrap(err, "Lock: SelectContext()")
 	}
 
-	metrics.AddEventsTotal(float64(len(events)))
-
+	metrics.AddEventsProcessingTotal(float64(len(events)))
+	metrics.AddEventsProcessedTotal(float64(len(events)))
 	return events, nil
 }
 
@@ -172,7 +174,7 @@ func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64) error {
 		return ErrNoneRowsUnlock
 	}
 
-	metrics.SubEventsTotal(float64(rowsCount))
+	metrics.SubEventsProcessingTotal(float64(rowsCount))
 
 	return nil
 }

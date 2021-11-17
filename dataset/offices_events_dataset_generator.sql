@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION generate_payload(office_id INT)
     RETURNS jsonb AS
 $$
 BEGIN
-    RETURN jsonb_build_object('id', office_id, 'name', 'test', 'description', 'test description', 'removed', false,  'created_at', now());
+    RETURN jsonb_build_object('id', office_id::text, 'name', 'test', 'description', 'test description', 'removed', false,  'created_at', now());
 END;
 $$ language 'plpgsql' STRICT;
 
