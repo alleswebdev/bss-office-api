@@ -15,6 +15,7 @@ type EventSender interface {
 type dummySender struct {
 }
 
+// NewDummySender - создаёт пустую заглушку для тестирования ретранслятора
 func NewDummySender() *dummySender {
 	return &dummySender{}
 }
