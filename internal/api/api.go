@@ -4,15 +4,6 @@ import (
 	"context"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-)
-
-var (
-	totalOfficeNotFound = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "bss_office_api_office_not_found_total",
-		Help: "Total number of offices that were not found",
-	})
 )
 
 type officeService interface {

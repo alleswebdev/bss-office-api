@@ -8,6 +8,7 @@ import (
 )
 
 // EventType enum for event type
+//go:generate stringer -linecomment -type=EventType
 type EventType uint8
 
 // EventStatus enum for event status
@@ -17,12 +18,12 @@ type EventStatus uint8
 // Updated - событие обновлено
 // Removed - событие удалено
 const (
-	_ EventType = iota
-	Created
-	Updated
-	Removed
-	OfficeNameUpdated
-	OfficeDescriptionUpdated
+	_                        EventType = iota
+	Created                            //created
+	Updated                            //updated
+	Removed                            //removed
+	OfficeNameUpdated                  //office_name_updated
+	OfficeDescriptionUpdated           //office_description_updated
 )
 
 // Deferred - событие ожидает обработки

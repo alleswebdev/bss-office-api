@@ -147,7 +147,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 	}
 
 	if rowsCount == 0 {
-		return false, nil
+		return false, ErrOfficeNotFound
 	}
 
 	return true, nil

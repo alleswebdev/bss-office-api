@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"google.golang.org/grpc/codes"
@@ -31,6 +32,8 @@ func (o *officeAPI) CreateOfficeV1(
 	}
 
 	logger.DebugKV(ctx, "CreateOfficeV1 - success")
+
+	metrics.IncTotalCud(model.Created)
 
 	return &pb.CreateOfficeV1Response{
 		OfficeId: officeID,

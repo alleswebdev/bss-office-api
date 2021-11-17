@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
 	"github.com/ozonmp/bss-office-api/internal/repo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,7 +30,7 @@ func (o *officeAPI) DescribeOfficeV1(
 
 		if errors.Is(err, repo.ErrOfficeNotFound) {
 			logger.DebugKV(ctx, "DescribeOfficeV1 - office not found", "officeId", req.GetOfficeId())
-			totalOfficeNotFound.Inc()
+			metrics.IncTotalNotFound()
 
 			return nil, status.Error(codes.NotFound, "office not found")
 		}

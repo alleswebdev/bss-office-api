@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
 	"net/http"
 
 	"github.com/ozonmp/bss-office-api/internal/config"
@@ -18,6 +19,8 @@ func createMetricsServer(cfg *config.Config) *http.Server {
 		Addr:    addr,
 		Handler: mux,
 	}
+
+	metrics.InitMetrics(cfg)
 
 	return metricsServer
 }

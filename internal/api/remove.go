@@ -2,7 +2,11 @@ package api
 
 import (
 	"context"
+	"errors"
 	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
+	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -21,17 +25,23 @@ func (o *officeAPI) RemoveOfficeV1(
 	}
 
 	officeFound, err := o.service.RemoveOffice(ctx, req.GetOfficeId())
+
 	if err != nil {
 		logger.ErrorKV(ctx, "RemoveOfficeV1 -- failed", "err", err)
+
+		if errors.Is(err, repo.ErrOfficeNotFound) {
+			logger.DebugKV(ctx, "RemoveOfficeV1 - office not found", "officeId", req.GetOfficeId())
+			metrics.IncTotalNotFound()
+
+			return nil, status.Error(codes.NotFound, "office not found")
+		}
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if !officeFound {
-		logger.DebugKV(ctx, "RemoveOfficeV1 - office not found", "officeId", req.GetOfficeId())
-	} else {
-		logger.DebugKV(ctx, "RemoveOfficeV1 - success", "err", err)
-	}
+	logger.DebugKV(ctx, "RemoveOfficeV1 - success", "err", err)
+
+	metrics.IncTotalCud(model.Removed)
 
 	return &pb.RemoveOfficeV1Response{
 		Found: officeFound,
