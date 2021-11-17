@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
 	gelf "github.com/snovichkov/zap-gelf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -52,6 +53,8 @@ func main() {
 		cfg.Database.Name,
 		cfg.Database.SslMode,
 	)
+
+	metrics.InitMetrics(&cfg)
 
 	db, err := database.NewPostgres(ctx, dsn, cfg.Database.Driver)
 	if err != nil {
