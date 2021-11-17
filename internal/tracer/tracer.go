@@ -18,8 +18,8 @@ func NewTracer(ctx context.Context, cfg *config.Config) (io.Closer, error) {
 	cfgTracer := &jaegercfg.Configuration{
 		ServiceName: cfg.Jaeger.Service,
 		Sampler: &jaegercfg.SamplerConfig{
-			Type:  jaeger.SamplerTypeConst,
-			Param: 1,
+			Type:  jaeger.SamplerTypeRateLimiting,
+			Param: 15,
 		},
 		Reporter: &jaegercfg.ReporterConfig{
 			LogSpans:           true,

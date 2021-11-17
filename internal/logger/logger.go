@@ -34,30 +34,37 @@ func fromContext(ctx context.Context) *zap.SugaredLogger {
 	return result
 }
 
+// ErrorKV - создаёт лог с уровнем error
 func ErrorKV(ctx context.Context, message string, kvs ...interface{}) {
 	fromContext(ctx).Errorw(message, kvs...)
 }
 
+// WarnKV - создаёт лог с уровнем warning
 func WarnKV(ctx context.Context, message string, kvs ...interface{}) {
 	fromContext(ctx).Warnw(message, kvs...)
 }
 
+// InfoKV - создаёт лог с уровнем info
 func InfoKV(ctx context.Context, message string, kvs ...interface{}) {
 	fromContext(ctx).Infow(message, kvs...)
 }
 
+// DebugKV - создаёт лог с уровнем debug
 func DebugKV(ctx context.Context, message string, kvs ...interface{}) {
 	fromContext(ctx).Debugw(message, kvs...)
 }
 
+// FatalKV - создаёт лог с уровнем fatal
 func FatalKV(ctx context.Context, message string, kvs ...interface{}) {
 	fromContext(ctx).Fatalw(message, kvs...)
 }
 
+// AttachLogger - добавляет логгер к контексту
 func AttachLogger(ctx context.Context, logger *zap.SugaredLogger) context.Context {
 	return context.WithValue(ctx, attachedLoggerKey, logger)
 }
 
+// CloneWithLevel - клонирует существующий логгер с указанным уровнем логирования
 func CloneWithLevel(ctx context.Context, newLevel zapcore.Level) *zap.SugaredLogger {
 	return fromContext(ctx).
 		Desugar().
@@ -65,6 +72,7 @@ func CloneWithLevel(ctx context.Context, newLevel zapcore.Level) *zap.SugaredLog
 		Sugar()
 }
 
+// SetLogger - устанавливает глобальный логгер
 func SetLogger(newLogger *zap.SugaredLogger) {
 	globalLogger = newLogger
 }
