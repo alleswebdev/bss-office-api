@@ -3,11 +3,11 @@ package retranslator
 
 import (
 	"context"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"time"
 
 	"github.com/ozonmp/bss-office-api/internal/app/consumer"
 	"github.com/ozonmp/bss-office-api/internal/app/producer"
-	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"github.com/ozonmp/bss-office-api/internal/app/sender"
 	"github.com/ozonmp/bss-office-api/internal/model"
 

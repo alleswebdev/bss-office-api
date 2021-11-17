@@ -3,11 +3,11 @@ package consumer
 
 import (
 	"context"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"log"
 	"sync"
 	"time"
 
-	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"github.com/ozonmp/bss-office-api/internal/model"
 )
 
@@ -21,8 +21,7 @@ type consumer struct {
 	n      int
 	events chan<- model.OfficeEvent
 
-	repo repo.EventRepo
-
+	repo      repo.EventRepo
 	batchSize uint64
 	timeout   time.Duration
 
@@ -66,7 +65,7 @@ func (c *consumer) Start(ctx context.Context) {
 			for {
 				select {
 				case <-ticker.C:
-					events, err := c.repo.Lock(c.batchSize)
+					events, err := c.repo.Lock(ctx, c.batchSize)
 					if err != nil {
 						log.Printf("consumer lock error:%s \n", err)
 						continue
@@ -75,6 +74,7 @@ func (c *consumer) Start(ctx context.Context) {
 						c.events <- event
 					}
 				case <-ctx.Done():
+					ticker.Stop()
 					return
 				}
 			}

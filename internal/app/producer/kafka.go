@@ -5,13 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ozonmp/bss-office-api/internal/app/repo"
+	"github.com/ozonmp/bss-office-api/internal/app/sender"
+	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"log"
 	"sync"
 	"time"
-
-	"github.com/ozonmp/bss-office-api/internal/app/sender"
-	"github.com/ozonmp/bss-office-api/internal/model"
 
 	"github.com/gammazero/workerpool"
 )
@@ -30,12 +29,11 @@ var errChannelClose = errors.New("producer: consumer closed the channel ")
 var errSender = errors.New("producer: error send event: %s")
 
 type producer struct {
-	n       int
-	timeout time.Duration
+	n int
 
 	repo      repo.EventRepo
 	batchSize int
-
+	timeout time.Duration
 	sender sender.EventSender
 	events <-chan model.OfficeEvent
 
@@ -88,11 +86,11 @@ func (p *producer) Start(ctx context.Context) {
 
 					err := p.sender.Send(ctx, &event)
 					if err != nil {
-						p.processUpdate([]uint64{event.ID})
+						p.processUpdate(ctx, []uint64{event.ID})
 						continue
 					}
 
-					p.processClean([]uint64{event.ID})
+					p.processClean(ctx, []uint64{event.ID})
 				case <-ctx.Done():
 					return
 				}
@@ -143,21 +141,12 @@ func (p *producer) Close() {
 	p.wg.Wait()
 }
 
-func (p *producer) processUpdate(eventIDs []uint64) {
-	p.workerPool.Submit(func() {
-		err := p.repo.Unlock(eventIDs)
-		if err != nil {
-			log.Printf(errUnlock.Error(), err)
-		}
-	})
-}
-
 // processWaitUpdate разблокирует записи в репозитории и дожидается возврата ошибки
-func (p *producer) processWaitUpdate(eventIDs []uint64) error {
+func (p *producer) processWaitUpdate(ctx context.Context, eventIDs []uint64) error {
 	errChan := make(chan error)
 	defer close(errChan)
 	p.workerPool.Submit(func() {
-		err := p.repo.Unlock(eventIDs)
+		err := p.repo.Unlock(ctx, eventIDs)
 		if err != nil {
 			errChan <- fmt.Errorf(errUnlock.Error(), err)
 			return
@@ -169,20 +158,30 @@ func (p *producer) processWaitUpdate(eventIDs []uint64) error {
 	return <-errChan
 }
 
-func (p *producer) processClean(eventIDs []uint64) {
-	err := p.repo.Remove(eventIDs)
+func (p *producer) processUpdate(ctx context.Context, eventIDs []uint64) {
+	p.workerPool.Submit(func() {
+		err := p.repo.Unlock(ctx, eventIDs)
+		if err != nil {
+			log.Printf(errUnlock.Error(), err)
+		}
+	})
+}
+
+
+func (p *producer) processClean(ctx context.Context, eventIDs []uint64) {
+	err := p.repo.Remove(ctx, eventIDs)
 	if err != nil {
 		log.Printf(errRemove.Error(), err)
 	}
 }
 
 // processWaitClean удаляет обработанные записи в репозитории и дожидается возврата ошибки
-func (p *producer) processWaitClean(eventIDs []uint64) error {
+func (p *producer) processWaitClean(ctx context.Context, eventIDs []uint64) error {
 	errChan := make(chan error)
 	defer close(errChan)
 
 	p.workerPool.Submit(func() {
-		err := p.repo.Remove(eventIDs)
+		err := p.repo.Remove(ctx, eventIDs)
 		if err != nil {
 			errChan <- fmt.Errorf(errRemove.Error(), err)
 			return
@@ -204,7 +203,7 @@ func (p *producer) processWaitClean(eventIDs []uint64) error {
 //
 // startBatchHandler возвращает канал для работы с событиями, вызывающий функцию должен закрыть этот канал
 // при завершении работы
-func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) error) chan<- uint64 {
+func (p *producer) startBatchHandler(ctx context.Context, f func(ctx context.Context, ids []uint64) error) chan<- uint64 {
 	c := make(chan uint64)
 
 	buffer := make([]uint64, 0, p.batchSize)
@@ -216,7 +215,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 			case id, ok := <-c:
 				if !ok {
 					if len(buffer) > 0 {
-						err := f(buffer)
+						err := f(ctx, buffer)
 						if err != nil {
 							log.Printf(errBatchHandler.Error(), err)
 						}
@@ -230,7 +229,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 				buffer = append(buffer, id)
 
 				if len(buffer) >= p.batchSize {
-					err := f(buffer)
+					err := f(ctx, buffer)
 
 					if err != nil {
 						log.Printf(errBatchHandler.Error(), err)
@@ -245,7 +244,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 				if len(buffer) == 0 {
 					continue
 				}
-				err := f(buffer)
+				err := f(ctx, buffer)
 
 				if err != nil {
 					log.Printf(errBatchHandler.Error(), err)
@@ -256,7 +255,7 @@ func (p *producer) startBatchHandler(ctx context.Context, f func(ids []uint64) e
 			case <-ctx.Done():
 				ticker.Stop()
 				if len(buffer) != 0 {
-					err := f(buffer)
+					err := f(ctx, buffer)
 					if err != nil {
 						log.Printf(errBatchHandler.Error(), err)
 					}
