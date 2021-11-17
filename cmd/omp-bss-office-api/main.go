@@ -15,12 +15,14 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 
 	cfg := retranslator.Config{
-		ChannelSize:    512,
-		ConsumerCount:  2,
-		ConsumeSize:    10,
-		ProducerCount:  28,
-		WorkerCount:    2,
-		ConsumeTimeout: time.Millisecond,
+		ChannelSize:       512,
+		ConsumerCount:     2,
+		ConsumeSize:       10,
+		ProducerCount:     28,
+		ProducerTimeout:   time.Millisecond,
+		ProducerBatchSize: 10,
+		WorkerCount:       2,
+		ConsumeTimeout:    time.Millisecond,
 	}
 
 	retranslator := retranslator.NewRetranslator(cfg)

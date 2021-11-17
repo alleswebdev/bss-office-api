@@ -1,3 +1,4 @@
+// Package repo - репозиторий для работы с событиями
 package repo
 
 import (
