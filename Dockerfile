@@ -3,7 +3,6 @@
 ARG GITHUB_PATH=github.com/ozonmp/bss-office-api
 
 FROM golang:1.16-alpine AS builder
-
 RUN apk add --update make git protoc protobuf protobuf-dev curl
 COPY . /home/${GITHUB_PATH}
 WORKDIR /home/${GITHUB_PATH}

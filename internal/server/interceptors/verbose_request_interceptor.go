@@ -18,6 +18,11 @@ func VerboseRequestInterceptor() grpc.UnaryServerInterceptor {
 		}
 
 		verboseTag := mData.Get("verbose")
+
+		if len(verboseTag) == 0 {
+			return handler(ctx, req)
+		}
+
 		isVerbose, err := strconv.ParseBool(verboseTag[0])
 
 		if !isVerbose || err != nil {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	bss_office_api "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -23,7 +24,7 @@ func Test_officeAPI_DescribeOfficeV1(t *testing.T) {
 
 	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).DoAndReturn(func(ctx context.Context, officeID uint64) (*model.Office, error) {
 		return &model.Office{
-			ID:          testOfficeID,
+			ID:          officeID,
 			Name:        "test",
 			Description: "test",
 		}, nil
@@ -45,7 +46,7 @@ func Test_officeAPI_DescribeOfficeV1_Not_Found(t *testing.T) {
 
 	testOfficeID := uint64(1)
 
-	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID)
+	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).Return(nil, repo.ErrOfficeNotFound)
 
 	_, err := fixture.apiServer.DescribeOfficeV1(context.Background(),
 		&bss_office_api.DescribeOfficeV1Request{OfficeId: testOfficeID})
@@ -65,9 +66,7 @@ func Test_officeAPI_DescribeOfficeV1_Repo_Err(t *testing.T) {
 
 	errTest := errors.New("test officeRepo err")
 	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).
-		DoAndReturn(func(ctx context.Context, officeID uint64) (*model.Office, error) {
-			return nil, errTest
-		})
+		Return(nil, errTest)
 
 	_, err := fixture.apiServer.DescribeOfficeV1(context.Background(),
 		&bss_office_api.DescribeOfficeV1Request{OfficeId: testOfficeID})

@@ -7,7 +7,6 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/Masterminds/squirrel v1.5.1
 	github.com/gammazero/workerpool v1.1.2
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/mock v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -15,7 +14,6 @@ require (
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
-	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ozonmp/bss-office-api/pkg/bss-office-api v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1

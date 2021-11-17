@@ -22,19 +22,25 @@ func (o *officeAPI) DescribeOfficeV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	office, err := o.service.DescribeOffice(ctx, req.OfficeId)
-
-	if errors.Is(err, repo.ErrOfficeNotFound) {
-		logger.DebugKV(ctx, "DescribeOfficeV1 - office not found", "officeId", req.GetOfficeId())
-		totalOfficeNotFound.Inc()
-
-		return nil, status.Error(codes.NotFound, "office not found")
-	}
+	office, err := o.service.DescribeOffice(ctx, req.GetOfficeId())
 
 	if err != nil {
 		logger.ErrorKV(ctx, "DescribeOfficeV1 -- failed", "err", err)
 
+		if errors.Is(err, repo.ErrOfficeNotFound) {
+			logger.DebugKV(ctx, "DescribeOfficeV1 - office not found", "officeId", req.GetOfficeId())
+			totalOfficeNotFound.Inc()
+
+			return nil, status.Error(codes.NotFound, "office not found")
+		}
+
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if office == nil {
+		logger.DebugKV(ctx, "DescribeOfficeV1 - office is nil", "officeId", req.GetOfficeId())
+
+		return nil, status.Error(codes.Internal, "office is nil")
 	}
 
 	logger.DebugKV(ctx, "DescribeOfficeV1 - success")
