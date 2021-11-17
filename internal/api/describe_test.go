@@ -21,7 +21,7 @@ func Test_officeAPI_DescribeOfficeV1(t *testing.T) {
 
 	testOfficeID := uint64(1)
 
-	fixture.repo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).DoAndReturn(func(ctx context.Context, officeID uint64) (*model.Office, error) {
+	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).DoAndReturn(func(ctx context.Context, officeID uint64) (*model.Office, error) {
 		return &model.Office{
 			ID:          testOfficeID,
 			Name:        "test",
@@ -45,7 +45,7 @@ func Test_officeAPI_DescribeOfficeV1_Not_Found(t *testing.T) {
 
 	testOfficeID := uint64(1)
 
-	fixture.repo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID)
+	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID)
 
 	_, err := fixture.apiServer.DescribeOfficeV1(context.Background(),
 		&bss_office_api.DescribeOfficeV1Request{OfficeId: testOfficeID})
@@ -63,8 +63,8 @@ func Test_officeAPI_DescribeOfficeV1_Repo_Err(t *testing.T) {
 
 	testOfficeID := uint64(1)
 
-	errTest := errors.New("test repo err")
-	fixture.repo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).
+	errTest := errors.New("test officeRepo err")
+	fixture.officeRepo.EXPECT().DescribeOffice(gomock.Any(), testOfficeID).
 		DoAndReturn(func(ctx context.Context, officeID uint64) (*model.Office, error) {
 			return nil, errTest
 		})

@@ -21,7 +21,7 @@ func (o *officeAPI) CreateOfficeV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	officeID, err := o.repo.CreateOffice(ctx, model.Office{
+	officeID, err := o.service.CreateOffice(ctx, model.Office{
 		Name:        req.GetName(),
 		Description: req.Description,
 	})

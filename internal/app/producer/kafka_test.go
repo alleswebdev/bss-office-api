@@ -1,6 +1,3 @@
-// +build !race
-
-// не работает с флагом гонки, нужно разобраться
 package producer
 
 import (
@@ -16,7 +13,7 @@ import (
 	"time"
 )
 
-const testProducerCount = 2
+const testProducerCount = 1
 const testWorkerCount = 2
 const testEventBufferSize = 512
 
@@ -46,10 +43,10 @@ func setUp(t *testing.T) ProducerFixture {
 		fixture.workerPool)
 
 	fixture.model = model.OfficeEvent{
-		ID:     1,
-		Type:   model.Created,
-		Status: model.Deferred,
-		Entity: &model.Office{},
+		ID:      1,
+		Type:    model.Created,
+		Status:  model.Deferred,
+		Payload: model.OfficePayload{},
 	}
 
 	return fixture
@@ -74,7 +71,7 @@ func TestProducer_Update(t *testing.T) {
 
 	gomock.InOrder(
 		fixture.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&fixture.model)).Return(nil).Times(1),
-		fixture.repo.EXPECT().Remove(gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(eventIDs []uint64) error {
+		fixture.repo.EXPECT().Remove(gomock.Any(), gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 			wg.Done()
 			return nil
 		}).Times(1),
@@ -105,7 +102,7 @@ func TestProducer_With_Error(t *testing.T) {
 
 	gomock.InOrder(
 		fixture.sender.EXPECT().Send(gomock.Eq(ctx), gomock.Eq(&fixture.model)).Return(errors.New("test error")).Times(1),
-		fixture.repo.EXPECT().Unlock(gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(eventIDs []uint64) error {
+		fixture.repo.EXPECT().Unlock(gomock.Any(), gomock.Eq([]uint64{fixture.model.ID})).DoAndReturn(func(ctx context.Context, eventIDs []uint64) error {
 			wg.Done()
 			return nil
 		}).Times(1),

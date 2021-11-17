@@ -24,6 +24,7 @@ func main() {
 	}
 
 	retranslator := retranslator.NewRetranslator(cfg)
+	defer retranslator.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -20,7 +20,7 @@ func (o *officeAPI) RemoveOfficeV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	result, err := o.repo.RemoveOffice(ctx, req.GetOfficeId())
+	result, err := o.service.RemoveOffice(ctx, req.GetOfficeId())
 	if err != nil {
 		log.Error().Err(err).Msg("RemoveOfficeV1 -- failed")
 

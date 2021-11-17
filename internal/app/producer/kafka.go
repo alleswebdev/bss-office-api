@@ -3,9 +3,9 @@ package producer
 import (
 	"context"
 	"fmt"
-	"github.com/ozonmp/bss-office-api/internal/app/repo"
 	"github.com/ozonmp/bss-office-api/internal/app/sender"
 	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"log"
 	"sync"
 
@@ -67,11 +67,11 @@ func (p *producer) Start(ctx context.Context) {
 
 					err := p.sender.Send(ctx, &event)
 					if err != nil {
-						p.processUpdate([]uint64{event.ID})
+						p.processUpdate(ctx, []uint64{event.ID})
 						continue
 					}
 
-					p.processClean([]uint64{event.ID})
+					p.processClean(ctx, []uint64{event.ID})
 				case <-ctx.Done():
 					return
 				}
@@ -84,17 +84,17 @@ func (p *producer) Close() {
 	p.wg.Wait()
 }
 
-func (p *producer) processUpdate(eventIDs []uint64) {
+func (p *producer) processUpdate(ctx context.Context, eventIDs []uint64) {
 	p.workerPool.Submit(func() {
-		err := p.repo.Unlock(eventIDs)
+		err := p.repo.Unlock(ctx, eventIDs)
 		if err != nil {
 			log.Printf("produser unlock error:%s \n", err)
 		}
 	})
 }
 
-func (p *producer) processClean(eventIDs []uint64) {
-	err := p.repo.Remove(eventIDs)
+func (p *producer) processClean(ctx context.Context, eventIDs []uint64) {
+	err := p.repo.Remove(ctx, eventIDs)
 	if err != nil {
 		log.Printf("produser remove error:%s \n", err)
 	}
