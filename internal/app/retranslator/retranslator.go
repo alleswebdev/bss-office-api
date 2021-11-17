@@ -1,3 +1,4 @@
+// Package retranslator  предназначен для пересылки событий из репозитория в брокер сообщений
 package retranslator
 
 import (
@@ -25,7 +26,7 @@ type Retranslator interface {
 // ConsumeSize  - размер канала Consumer
 // ConsumeTimeout - время ожидания до следующего batch-запроса
 // ProducerCount - количество горутин с Producer
-// WorkerCount - количество воркеров в воркерпуле для очистки и обновления событий в БД после отправки в кафку
+// WorkerCount - количество воркеров в воркерпуле для очистки и обновления событий в БД после отправки в брокер сообщений
 // Repo - репозиторий для работы с событиями
 // Sender - сервис для отправки событий в кафку
 type Config struct {
@@ -35,8 +36,10 @@ type Config struct {
 	ConsumeSize    uint64
 	ConsumeTimeout time.Duration
 
-	ProducerCount int
-	WorkerCount   int
+	ProducerCount     int
+	ProducerTimeout   time.Duration
+	ProducerBatchSize int
+	WorkerCount       int
 
 	Repo   repo.EventRepo
 	Sender sender.EventSender
@@ -62,6 +65,8 @@ func NewRetranslator(cfg Config) Retranslator {
 		events)
 	producer := producer.NewKafkaProducer(
 		cfg.ProducerCount,
+		cfg.ProducerBatchSize,
+		cfg.ProducerTimeout,
 		cfg.Sender,
 		cfg.Repo,
 		events,
