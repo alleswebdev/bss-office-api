@@ -89,6 +89,7 @@ func init() {
 	globalLogger = notSugaredLogger.Sugar()
 }
 
+// InitLogger - инициализирует экземпляр логгера с выводом в консоль и грейлог (gelf)
 func InitLogger(ctx context.Context, cfg *config.Config) (syncFn func()) {
 	loggingLevel := zap.InfoLevel
 
