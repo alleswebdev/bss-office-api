@@ -3,9 +3,12 @@ package logger
 import (
 	"context"
 	"github.com/opentracing/opentracing-go"
+	"github.com/ozonmp/bss-office-api/internal/config"
+	gelf "github.com/snovichkov/zap-gelf"
 	"github.com/uber/jaeger-client-go"
 	"go.uber.org/zap/zapcore"
 	"log"
+	"os"
 
 	"go.uber.org/zap"
 )
@@ -84,4 +87,41 @@ func init() {
 	}
 
 	globalLogger = notSugaredLogger.Sugar()
+}
+
+func InitLogger(ctx context.Context, cfg *config.Config) (syncFn func()) {
+	loggingLevel := zap.InfoLevel
+
+	if cfg.Project.Debug {
+		loggingLevel = zap.DebugLevel
+	}
+
+	consoleCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		os.Stderr,
+		zap.NewAtomicLevelAt(loggingLevel),
+	)
+
+	gelfCore, err := gelf.NewCore(
+		gelf.Addr(cfg.Telemetry.GraylogPath),
+		gelf.Level(loggingLevel),
+	)
+
+	if err != nil {
+		FatalKV(ctx, "logger create error", "err", err)
+	}
+
+	notSugaredLogger := zap.New(zapcore.NewTee(consoleCore, gelfCore))
+
+	sugaredLogger := notSugaredLogger.Sugar()
+	SetLogger(sugaredLogger.With(
+		"service", cfg.Project.Name,
+	))
+
+	return func() {
+		errInit := notSugaredLogger.Sync()
+		if errInit != nil {
+			ErrorKV(ctx, "initLogger() error", "err", errInit)
+		}
+	}
 }

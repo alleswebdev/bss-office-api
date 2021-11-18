@@ -5,11 +5,6 @@ import (
 	"fmt"
 	"github.com/ozonmp/bss-office-api/internal/logger"
 	"github.com/ozonmp/bss-office-api/internal/metrics"
-	gelf "github.com/snovichkov/zap-gelf"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"os"
-
 	"log"
 
 	_ "github.com/jackc/pgx/v4"
@@ -35,7 +30,7 @@ func main() {
 
 	cfg := config.GetConfigInstance()
 
-	syncLogger := initLogger(ctx, cfg)
+	syncLogger := logger.InitLogger(ctx, &cfg)
 	defer syncLogger()
 
 	logger.InfoKV(ctx, fmt.Sprintf("Starting service: %s", cfg.Project.Name),
@@ -74,42 +69,5 @@ func main() {
 		logger.FatalKV(ctx, "Failed creating gRPC server", "err", err)
 
 		return
-	}
-}
-
-func initLogger(ctx context.Context, cfg config.Config) (syncFn func()) {
-	loggingLevel := zap.InfoLevel
-
-	if cfg.Project.Debug {
-		loggingLevel = zap.DebugLevel
-	}
-
-	consoleCore := zapcore.NewCore(
-		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
-		os.Stderr,
-		zap.NewAtomicLevelAt(loggingLevel),
-	)
-
-	gelfCore, err := gelf.NewCore(
-		gelf.Addr(cfg.Telemetry.GraylogPath),
-		gelf.Level(loggingLevel),
-	)
-
-	if err != nil {
-		logger.FatalKV(ctx, "logger create error", "err", err)
-	}
-
-	notSugaredLogger := zap.New(zapcore.NewTee(consoleCore, gelfCore))
-
-	sugaredLogger := notSugaredLogger.Sugar()
-	logger.SetLogger(sugaredLogger.With(
-		"service", cfg.Project.Name,
-	))
-
-	return func() {
-		errInit := notSugaredLogger.Sync()
-		if errInit != nil {
-			logger.ErrorKV(ctx, "initLogger() error", "err", errInit)
-		}
 	}
 }
