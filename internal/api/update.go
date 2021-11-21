@@ -18,8 +18,6 @@ func (o *officeAPI) UpdateOfficeV1(
 ) (*pb.UpdateOfficeV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		logger.ErrorKV(ctx, "UpdateOfficeV1 - invalid argument", "err", err)
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -34,7 +32,6 @@ func (o *officeAPI) UpdateOfficeV1(
 		logger.ErrorKV(ctx, "UpdateOfficeV1 -- failed", "err", err)
 
 		if errors.Is(err, repo.ErrOfficeNotFound) {
-			logger.DebugKV(ctx, "UpdateOfficeV1 - office not found", "officeId", req.GetOfficeId())
 			metrics.IncTotalNotFound()
 
 			return nil, status.Error(codes.NotFound, "office not found")
@@ -42,8 +39,6 @@ func (o *officeAPI) UpdateOfficeV1(
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	logger.DebugKV(ctx, "UpdateOfficeV1 - success")
 
 	metrics.IncTotalCud(model.Updated)
 

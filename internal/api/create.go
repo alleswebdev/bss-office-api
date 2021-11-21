@@ -15,8 +15,6 @@ func (o *officeAPI) CreateOfficeV1(
 	req *pb.CreateOfficeV1Request,
 ) (*pb.CreateOfficeV1Response, error) {
 	if err := req.Validate(); err != nil {
-		logger.ErrorKV(ctx, "CreateOfficeV1 - invalid argument", "err", err)
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -30,8 +28,6 @@ func (o *officeAPI) CreateOfficeV1(
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	logger.DebugKV(ctx, "CreateOfficeV1 - success")
 
 	metrics.IncTotalCud(model.Created)
 

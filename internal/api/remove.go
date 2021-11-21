@@ -19,8 +19,6 @@ func (o *officeAPI) RemoveOfficeV1(
 ) (*pb.RemoveOfficeV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		logger.ErrorKV(ctx, "RemoveOfficeV1 - invalid argument", "err", err)
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -30,7 +28,6 @@ func (o *officeAPI) RemoveOfficeV1(
 		logger.ErrorKV(ctx, "RemoveOfficeV1 -- failed", "err", err)
 
 		if errors.Is(err, repo.ErrOfficeNotFound) {
-			logger.DebugKV(ctx, "RemoveOfficeV1 - office not found", "officeId", req.GetOfficeId())
 			metrics.IncTotalNotFound()
 
 			return nil, status.Error(codes.NotFound, "office not found")
@@ -38,8 +35,6 @@ func (o *officeAPI) RemoveOfficeV1(
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	logger.DebugKV(ctx, "RemoveOfficeV1 - success", "err", err)
 
 	metrics.IncTotalCud(model.Removed)
 

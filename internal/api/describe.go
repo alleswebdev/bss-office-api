@@ -18,8 +18,6 @@ func (o *officeAPI) DescribeOfficeV1(
 ) (*pb.DescribeOfficeV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		logger.ErrorKV(ctx, "DescribeOfficeV1 - invalid argument", "err", err)
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -29,7 +27,6 @@ func (o *officeAPI) DescribeOfficeV1(
 		logger.ErrorKV(ctx, "DescribeOfficeV1 -- failed", "err", err)
 
 		if errors.Is(err, repo.ErrOfficeNotFound) {
-			logger.DebugKV(ctx, "DescribeOfficeV1 - office not found", "officeId", req.GetOfficeId())
 			metrics.IncTotalNotFound()
 
 			return nil, status.Error(codes.NotFound, "office not found")
@@ -43,8 +40,6 @@ func (o *officeAPI) DescribeOfficeV1(
 
 		return nil, status.Error(codes.Internal, "office is nil")
 	}
-
-	logger.DebugKV(ctx, "DescribeOfficeV1 - success")
 
 	return &pb.DescribeOfficeV1Response{
 		Value: convertBssOfficeToPb(office),

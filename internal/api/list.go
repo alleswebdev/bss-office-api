@@ -13,8 +13,6 @@ func (o *officeAPI) ListOfficesV1(
 	req *pb.ListOfficesV1Request,
 ) (*pb.ListOfficesV1Response, error) {
 	if err := req.Validate(); err != nil {
-		logger.ErrorKV(ctx, "ListOfficesV1 - invalid argument", "err", err)
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -24,8 +22,6 @@ func (o *officeAPI) ListOfficesV1(
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	logger.DebugKV(ctx, "ListOfficesV1 - success")
 
 	pbItems := make([]*pb.Office, 0, len(items))
 
