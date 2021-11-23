@@ -2,22 +2,19 @@ package api
 
 import (
 	"context"
+	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
 	"github.com/ozonmp/bss-office-api/internal/model"
-	"github.com/rs/zerolog/log"
+	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 )
 
 func (o *officeAPI) CreateOfficeV1(
 	ctx context.Context,
 	req *pb.CreateOfficeV1Request,
 ) (*pb.CreateOfficeV1Response, error) {
-
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("CreateOfficeV1 - invalid argument")
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -27,12 +24,12 @@ func (o *officeAPI) CreateOfficeV1(
 	})
 
 	if err != nil {
-		log.Error().Err(err).Msg("CreateOfficeV1 -- failed")
+		logger.ErrorKV(ctx, "CreateOfficeV1 -- failed", "err", err)
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Debug().Msg("CreateOfficeV1 - success")
+	metrics.IncTotalCud(model.Created)
 
 	return &pb.CreateOfficeV1Response{
 		OfficeId: officeID,

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"github.com/opentracing/opentracing-go"
 	"github.com/ozonmp/bss-office-api/internal/database"
 	"github.com/ozonmp/bss-office-api/internal/model"
 	"github.com/pkg/errors"
@@ -46,6 +47,9 @@ func NewOfficeRepo(db *sqlx.DB) OfficeRepo {
 
 // DescribeOffice Describe an office by id
 func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Office, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "OfficeRepo.DescribeOffice")
+	defer span.Finish()
+
 	sb := database.StatementBuilder.
 		Select(
 			officeIDColumn,
@@ -82,6 +86,8 @@ func (r *repo) DescribeOffice(ctx context.Context, officeID uint64) (*model.Offi
 
 // CreateOffice - create new office
 func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.Tx) (uint64, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "OfficeRepo.CreateOffice")
+	defer span.Finish()
 
 	sb := database.StatementBuilder.
 		Insert(officesTableName).
@@ -111,6 +117,9 @@ func (r *repo) CreateOffice(ctx context.Context, office model.Office, tx *sqlx.T
 //RemoveOffice - remove office by id
 // office is not really delete, just set the removed flag to true
 func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (bool, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "OfficeRepo.RemoveOffice")
+	defer span.Finish()
+
 	sb := database.StatementBuilder.
 		Update(officesTableName).
 		Set(officeRemovedColumn, true).
@@ -138,7 +147,7 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 	}
 
 	if rowsCount == 0 {
-		return false, nil
+		return false, ErrOfficeNotFound
 	}
 
 	return true, nil
@@ -146,6 +155,9 @@ func (r *repo) RemoveOffice(ctx context.Context, officeID uint64, tx *sqlx.Tx) (
 
 //UpdateOffice - update all editable fields in office model by id
 func (r *repo) UpdateOffice(ctx context.Context, officeID uint64, officeModel model.Office, tx *sqlx.Tx) (bool, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "OfficeRepo.UpdateOffice")
+	defer span.Finish()
+
 	sb := database.StatementBuilder.
 		Update(officesTableName).
 		Set(officeNameColumn, officeModel.Name).
@@ -252,6 +264,9 @@ func (r *repo) UpdateOfficeDescription(ctx context.Context, officeID uint64, des
 
 // ListOffices - return all offices
 func (r *repo) ListOffices(ctx context.Context, limit uint64, offset uint64) ([]*model.Office, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "OfficeRepo.ListOffices")
+	defer span.Finish()
+
 	sb := database.StatementBuilder.
 		Select(
 			officeIDColumn,

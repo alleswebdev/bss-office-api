@@ -2,7 +2,10 @@ package api
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
+	"errors"
+	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -15,26 +18,28 @@ func (o *officeAPI) DescribeOfficeV1(
 ) (*pb.DescribeOfficeV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("DescribeOfficeV1 - invalid argument")
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	office, err := o.service.DescribeOffice(ctx, req.OfficeId)
+	office, err := o.service.DescribeOffice(ctx, req.GetOfficeId())
+
 	if err != nil {
-		log.Error().Err(err).Msg("DescribeOfficeV1 -- failed")
+		logger.ErrorKV(ctx, "DescribeOfficeV1 -- failed", "err", err)
+
+		if errors.Is(err, repo.ErrOfficeNotFound) {
+			metrics.IncTotalNotFound()
+
+			return nil, status.Error(codes.NotFound, "office not found")
+		}
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if office == nil {
-		log.Debug().Uint64("officeId", req.GetOfficeId()).Msg("office not found")
-		totalOfficeNotFound.Inc()
+		logger.DebugKV(ctx, "DescribeOfficeV1 - office is nil", "officeId", req.GetOfficeId())
 
-		return nil, status.Error(codes.NotFound, "office not found")
+		return nil, status.Error(codes.Internal, "office is nil")
 	}
-
-	log.Debug().Msg("DescribeOfficeV1 - success")
 
 	return &pb.DescribeOfficeV1Response{
 		Value: convertBssOfficeToPb(office),

@@ -2,7 +2,11 @@ package api
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
+	"errors"
+	"github.com/ozonmp/bss-office-api/internal/logger"
+	"github.com/ozonmp/bss-office-api/internal/metrics"
+	"github.com/ozonmp/bss-office-api/internal/model"
+	"github.com/ozonmp/bss-office-api/internal/repo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -15,21 +19,26 @@ func (o *officeAPI) RemoveOfficeV1(
 ) (*pb.RemoveOfficeV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("RemoveOfficeV1 - invalid argument")
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	result, err := o.service.RemoveOffice(ctx, req.GetOfficeId())
+	officeFound, err := o.service.RemoveOffice(ctx, req.GetOfficeId())
+
 	if err != nil {
-		log.Error().Err(err).Msg("RemoveOfficeV1 -- failed")
+		logger.ErrorKV(ctx, "RemoveOfficeV1 -- failed", "err", err)
+
+		if errors.Is(err, repo.ErrOfficeNotFound) {
+			metrics.IncTotalNotFound()
+
+			return nil, status.Error(codes.NotFound, "office not found")
+		}
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Debug().Msg("RemoveOfficeV1 - success")
+	metrics.IncTotalCud(model.Removed)
 
 	return &pb.RemoveOfficeV1Response{
-		Found: result,
+		Found: officeFound,
 	}, nil
 }

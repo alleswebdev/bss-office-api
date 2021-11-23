@@ -136,7 +136,7 @@ func Test_repo_RemoveOffice_Not_Found(t *testing.T) {
 
 	result, err := f.officeRepo.RemoveOffice(context.Background(), testOffice.ID, nil)
 
-	require.NoError(t, err)
+	require.ErrorIs(t, err, ErrOfficeNotFound)
 	require.Equal(t, result, false)
 }
 
