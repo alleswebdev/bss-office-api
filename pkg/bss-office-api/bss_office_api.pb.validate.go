@@ -135,6 +135,87 @@ var _ interface {
 	ErrorName() string
 } = OfficeValidationError{}
 
+// Validate checks the field values on OfficePayload with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *OfficePayload) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetId() <= 0 {
+		return OfficePayloadValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 100 {
+		return OfficePayloadValidationError{
+			field:  "Name",
+			reason: "value length must be between 2 and 100 runes, inclusive",
+		}
+	}
+
+	// no validation rules for Description
+
+	return nil
+}
+
+// OfficePayloadValidationError is the validation error returned by
+// OfficePayload.Validate if the designated constraints aren't met.
+type OfficePayloadValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e OfficePayloadValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e OfficePayloadValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e OfficePayloadValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e OfficePayloadValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e OfficePayloadValidationError) ErrorName() string { return "OfficePayloadValidationError" }
+
+// Error satisfies the builtin error interface
+func (e OfficePayloadValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sOfficePayload.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = OfficePayloadValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = OfficePayloadValidationError{}
+
 // Validate checks the field values on OfficeEvent with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
