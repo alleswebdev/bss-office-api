@@ -16,7 +16,7 @@ rest:
 
 metrics:
   host: 0.0.0.0
-  port: 9300
+  port: 9200
   path: /metrics
   namespace: bss
   subsystem: office

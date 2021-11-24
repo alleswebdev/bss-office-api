@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 )
 
+// NewSyncProducer создаёт экземпляр синхорнного продюсера для подключения к кафке
 func NewSyncProducer(brokers []string) (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Partitioner = sarama.NewRandomPartitioner
@@ -15,6 +16,7 @@ func NewSyncProducer(brokers []string) (sarama.SyncProducer, error) {
 	return producer, err
 }
 
+// SendMessage - отправляет сообщение в кафку
 func SendMessage(ctx context.Context, producer sarama.SyncProducer, topic string, message []byte) error {
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,

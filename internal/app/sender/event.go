@@ -20,6 +20,7 @@ type eventSender struct {
 	topic    string
 }
 
+// NewEventSender - создаёт экземпляр eventSender для отправки событий в брокер сообщений
 func NewEventSender(brokers []string, topic string) (*eventSender, error) {
 	syncProducer, err := kafka.NewSyncProducer(brokers)
 

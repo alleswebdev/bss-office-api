@@ -80,6 +80,7 @@ func (op *OfficePayload) Scan(src interface{}) (err error) {
 	return nil
 }
 
+// ConvertBssOfficeEventToPb конвертирует модель OfficeEvent в сообщение protobuf
 func ConvertBssOfficeEventToPb(o *OfficeEvent) *pb.OfficeEvent {
 	var payload *pb.OfficePayload
 
@@ -100,6 +101,7 @@ func ConvertBssOfficeEventToPb(o *OfficeEvent) *pb.OfficeEvent {
 	return pb
 }
 
+// ConvertBssOfficePayloadToPb конвертирует модель OfficePayload в сообщение protobuf
 func ConvertBssOfficePayloadToPb(op *OfficePayload) *pb.OfficePayload {
 	pb := &pb.OfficePayload{
 		Id:          op.ID,
