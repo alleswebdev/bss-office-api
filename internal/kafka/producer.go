@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"github.com/Shopify/sarama"
-	"github.com/ozonmp/bss-office-api/internal/logger"
 )
 
 func NewSyncProducer(brokers []string) (sarama.SyncProducer, error) {
@@ -23,9 +22,7 @@ func SendMessage(ctx context.Context, producer sarama.SyncProducer, topic string
 		Value:     sarama.ByteEncoder(message),
 	}
 
-	part, offset, err := producer.SendMessage(msg)
-
-	logger.DebugKV(ctx, "Send msg", "msg", msg, "partition", part, "offset", offset)
+	_, _, err := producer.SendMessage(msg)
 
 	return err
 }

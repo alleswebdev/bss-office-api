@@ -81,6 +81,12 @@ func (op *OfficePayload) Scan(src interface{}) (err error) {
 }
 
 func ConvertBssOfficeEventToPb(o *OfficeEvent) *pb.OfficeEvent {
+	var payload *pb.OfficePayload
+
+	if &o.Payload != nil {
+		payload = ConvertBssOfficePayloadToPb(&o.Payload)
+	}
+
 	pb := &pb.OfficeEvent{
 		Id:       o.ID,
 		OfficeId: o.OfficeID,
@@ -88,7 +94,7 @@ func ConvertBssOfficeEventToPb(o *OfficeEvent) *pb.OfficeEvent {
 		Type:     o.Type.String(),
 		Created:  timestamppb.New(o.Created),
 		Updated:  timestamppb.New(o.Updated.Time),
-		Payload:  ConvertBssOfficePayloadToPb(&o.Payload),
+		Payload:  payload,
 	}
 
 	return pb
