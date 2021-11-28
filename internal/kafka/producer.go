@@ -19,9 +19,8 @@ func NewSyncProducer(brokers []string) (sarama.SyncProducer, error) {
 // SendMessage - отправляет сообщение в кафку
 func SendMessage(ctx context.Context, producer sarama.SyncProducer, topic string, message []byte) error {
 	msg := &sarama.ProducerMessage{
-		Topic:     topic,
-		Partition: -1,
-		Value:     sarama.ByteEncoder(message),
+		Topic: topic,
+		Value: sarama.ByteEncoder(message),
 	}
 
 	_, _, err := producer.SendMessage(msg)
