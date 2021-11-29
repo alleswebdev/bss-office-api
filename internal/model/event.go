@@ -3,7 +3,9 @@ package model
 import (
 	"database/sql"
 	"encoding/json"
+	pb "github.com/ozonmp/bss-office-api/pkg/bss-office-api"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
@@ -76,4 +78,36 @@ func (op *OfficePayload) Scan(src interface{}) (err error) {
 	*op = payload
 
 	return nil
+}
+
+// ConvertBssOfficeEventToPb конвертирует модель OfficeEvent в сообщение protobuf
+func ConvertBssOfficeEventToPb(o *OfficeEvent) *pb.OfficeEvent {
+	var payload *pb.OfficePayload
+
+	if &o.Payload != nil {
+		payload = ConvertBssOfficePayloadToPb(&o.Payload)
+	}
+
+	pb := &pb.OfficeEvent{
+		Id:       o.ID,
+		OfficeId: o.OfficeID,
+		Status:   uint64(o.Status),
+		Type:     o.Type.String(),
+		Created:  timestamppb.New(o.Created),
+		Updated:  timestamppb.New(o.Updated.Time),
+		Payload:  payload,
+	}
+
+	return pb
+}
+
+// ConvertBssOfficePayloadToPb конвертирует модель OfficePayload в сообщение protobuf
+func ConvertBssOfficePayloadToPb(op *OfficePayload) *pb.OfficePayload {
+	pb := &pb.OfficePayload{
+		Id:          op.ID,
+		Name:        op.Name,
+		Description: op.Description,
+	}
+
+	return pb
 }

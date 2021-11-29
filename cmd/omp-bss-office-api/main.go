@@ -53,9 +53,13 @@ func main() {
 	defer db.Close()
 
 	eventsRepo := repo.NewEventRepo(db)
-	dummySender := sender.NewDummySender()
+	sender, err := sender.NewEventSender(cfg.Kafka.Brokers, cfg.Kafka.Topic)
 
-	retranslator := retranslator.NewRetranslator(&cfg, eventsRepo, dummySender)
+	if err != nil {
+		logger.FatalKV(ctx, "Failed start kafka producer", "err", err)
+	}
+
+	retranslator := retranslator.NewRetranslator(&cfg, eventsRepo, sender)
 	defer retranslator.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
